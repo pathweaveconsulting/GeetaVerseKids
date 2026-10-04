@@ -12,6 +12,8 @@ interface RewardPageProps {
   previousHealth: number;
   newHealth: number;
   previouslyCompletedQuests: number[];
+  // Replaying a finished quest: nothing new to unlock, so skip the celebration
+  isReplay?: boolean;
   onNext: () => void;
   onGoToSanctuary: () => void;
 }
@@ -22,11 +24,12 @@ export default function RewardPage({
   previousHealth,
   newHealth,
   previouslyCompletedQuests,
+  isReplay = false,
   onNext,
   onGoToSanctuary
 }: RewardPageProps) {
-  const [animationState, setAnimationState] = useState<'idle' | 'flying' | 'impact' | 'completed'>('idle');
-  const [currentDisplayHealth, setCurrentDisplayHealth] = useState(previousHealth);
+  const [animationState, setAnimationState] = useState<'idle' | 'flying' | 'impact' | 'completed'>(isReplay ? 'completed' : 'idle');
+  const [currentDisplayHealth, setCurrentDisplayHealth] = useState(isReplay ? newHealth : previousHealth);
   // Show the tree as it was before this quest, then add this quest's decoration on impact
   const [displayedCompletedQuests, setDisplayedCompletedQuests] = useState<number[]>(previouslyCompletedQuests);
   const unlockedDecoration = getDecorationForQuest(quest.id);
@@ -79,10 +82,10 @@ export default function RewardPage({
       {/* 1. Header Victory Banner */}
       <header className="text-center z-10 max-w-xl mx-auto w-full">
         <span className="text-[#a5b4fc] font-display font-black text-[10px] uppercase tracking-widest bg-white/10 backdrop-blur-md border border-white/10 px-4 py-1.5 rounded-full shadow-md">
-          🏆 QUEST {quest.id} STABILIZED
+          🏆 QUEST {quest.id} {isReplay ? 'COMPLETE AGAIN' : 'STABILIZED'}
         </span>
         <h1 className="font-display font-black text-3xl md:text-4xl mt-3 text-white drop-shadow-md">
-          Wisdom Unlocked!
+          {isReplay ? 'Wisdom Practised!' : 'Wisdom Unlocked!'}
         </h1>
       </header>
 
@@ -169,12 +172,25 @@ export default function RewardPage({
               className="absolute bottom-[-10px] w-full max-w-sm bg-slate-800/90 border border-amber-200/40 rounded-2xl p-4 text-center shadow-lg"
             >
               <span className="text-2xl animate-float block">✨</span>
-              <h3 className="font-display font-black text-amber-200 text-sm md:text-base leading-none">
-                You Unlocked: {unlockedDecoration?.emoji} {unlockedDecoration?.name ?? quest.rewardItem}!
-              </h3>
-              <p className="font-sans text-[11px] text-slate-300 mt-1 leading-snug">
-                It has been anchored beautifully in the Sanctuary tree branch. Visit the garden to play with it!
-              </p>
+              {isReplay ? (
+                <>
+                  <h3 className="font-display font-black text-amber-200 text-sm md:text-base leading-none">
+                    Great practice!
+                  </h3>
+                  <p className="font-sans text-[11px] text-slate-300 mt-1 leading-snug">
+                    Your {unlockedDecoration?.emoji} {unlockedDecoration?.name ?? quest.rewardItem} is already glowing in the Sanctuary.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-display font-black text-amber-200 text-sm md:text-base leading-none">
+                    You Unlocked: {unlockedDecoration?.emoji} {unlockedDecoration?.name ?? quest.rewardItem}!
+                  </h3>
+                  <p className="font-sans text-[11px] text-slate-300 mt-1 leading-snug">
+                    It has been anchored beautifully in the Sanctuary tree branch. Visit the garden to play with it!
+                  </p>
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

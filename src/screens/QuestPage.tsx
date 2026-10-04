@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playSound, speakText, stopSpeaking } from '../utils/audio';
 import { Quest, CompanionId } from '../types';
+import { QuestStep } from '../session';
 import { COMPANIONS } from '../quests';
 import CharacterPortrait, { CharacterId } from '../components/CharacterPortrait';
 
@@ -9,16 +10,31 @@ interface QuestPageProps {
   quest: Quest;
   companionId: CompanionId;
   ageGroup?: 'explorer' | 'seeker' | 'guide';
+  // Where to resume, so a refresh returns the child to the same step
+  initialStep?: QuestStep;
+  initialWisdomUncovered?: boolean;
+  isReplay?: boolean;
+  onProgress?: (step: QuestStep, wisdomUncovered: boolean) => void;
   onComplete: (questId: number) => void;
   onExit: () => void;
 }
 
-export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onComplete, onExit }: QuestPageProps) {
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+export default function QuestPage({
+  quest,
+  companionId,
+  ageGroup = 'seeker',
+  initialStep = 1,
+  initialWisdomUncovered = false,
+  isReplay = false,
+  onProgress,
+  onComplete,
+  onExit
+}: QuestPageProps) {
+  const [currentStep, setCurrentStep] = useState<QuestStep>(initialStep);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrectSelected, setIsCorrectSelected] = useState(false);
-  const [uncoveredWisdom, setUncoveredWisdom] = useState(false);
+  const [uncoveredWisdom, setUncoveredWisdom] = useState(initialWisdomUncovered || initialStep > 2);
   const [activeSpeaker, setActiveSpeaker] = useState<CharacterId | null>(null);
   
   // Audio narration controls
@@ -31,6 +47,10 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
   const [isChantFinished, setIsChantFinished] = useState(false);
 
   const companion = COMPANIONS[companionId];
+
+  useEffect(() => {
+    onProgress?.(currentStep, uncoveredWisdom);
+  }, [currentStep, uncoveredWisdom]);
 
   const getQuestCharacters = (questId: number): CharacterId[] => {
     switch (questId) {
@@ -92,17 +112,19 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
     } else if (currentStep === 4) {
       speakText(`Quiz challenge: ${quest.challengeStep.question}`, 'narrator');
     } else if (currentStep === 5) {
-      speakText(`Amazing job! You successfully completed the quest and restored the ${quest.rewardCrystal} and unlocked the ${quest.rewardItem}! Let's merge it into our Wisdom Tree.`, 'companion');
+      speakText(isReplay
+        ? `Amazing job! You finished this quest again. Your ${quest.rewardItem} is still glowing in the Sanctuary!`
+        : `Amazing job! You successfully completed the quest and restored the ${quest.rewardCrystal} and unlocked the ${quest.rewardItem}! Let's merge it into our Wisdom Tree.`, 'companion');
     }
 
     return () => stopSpeaking();
-  }, [currentStep, uncoveredWisdom, isMuted, quest, ageGroup, chantActive]);
+  }, [currentStep, uncoveredWisdom, isMuted, quest, ageGroup, chantActive, isReplay]);
 
   const handleNextStep = () => {
     setActiveSpeaker(null);
     if (currentStep < 5) {
       playSound.tap();
-      setCurrentStep((prev) => (prev + 1) as any);
+      setCurrentStep((prev) => (prev + 1) as QuestStep);
     }
   };
 
@@ -110,7 +132,7 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
     setActiveSpeaker(null);
     if (currentStep > 1) {
       playSound.tap();
-      setCurrentStep((prev) => (prev - 1) as any);
+      setCurrentStep((prev) => (prev - 1) as QuestStep);
     }
   };
 
@@ -727,18 +749,20 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
               </motion.div>
 
               <h2 className="font-display font-black text-indigo-950 text-2xl md:text-3xl leading-none mt-2">
-                Unwrapped {quest.rewardCrystal}!
+                {isReplay ? 'Quest Complete Again!' : `Unwrapped ${quest.rewardCrystal}!`}
               </h2>
               
               <p className="font-sans text-xs text-indigo-950/70 font-bold max-w-sm mt-3 leading-relaxed">
-                A pristine nugget of Krishna-Arjuna wisdom, glowing with divine values! It will join your collection in the Knowledge River!
+                {isReplay
+                  ? `You already restored the ${quest.rewardCrystal}. Practising again keeps its wisdom bright!`
+                  : 'A pristine nugget of Krishna-Arjuna wisdom, glowing with divine values! It will join your collection in the Knowledge River!'}
               </p>
 
               {/* Reward accessory item details */}
               <div className="my-4 bg-indigo-50/50 border border-indigo-100 rounded-[20px] p-4 flex items-center gap-4 w-full max-w-sm shadow-sm">
                 <span className="text-3xl">🎁</span>
                 <div className="text-left">
-                  <span className="text-[10px] uppercase font-black text-indigo-400 tracking-wider block">Camp Ground Upgrade</span>
+                  <span className="text-[10px] uppercase font-black text-indigo-400 tracking-wider block">{isReplay ? 'Already in Your Sanctuary' : 'Camp Ground Upgrade'}</span>
                   <h4 className="font-display font-black text-indigo-950 text-sm">{quest.rewardItem}</h4>
                 </div>
               </div>

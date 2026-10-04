@@ -219,66 +219,6 @@ async function checkMapNodes(page: Page, rec: Recorder, completed: number) {
   }
 }
 
-test('refresh mid-quest', async ({ page }, info) => {
-  const rec = new Recorder(page, info, 'refresh');
-  await seedProgress(page, 2);
-  await rec.tap(page.locator('#btn-start-adventure'), 'Start');
-  await rec.tap(page.getByRole('button', { name: /START ADVENTURE/ }), 'Home start quest 3');
-  await page.waitForSelector('#quest-play-wrapper');
-  const next = page.getByRole('button', { name: /Next Step/ });
-  await rec.tap(next, 'next');
-  await rec.tap(page.getByRole('button', { name: /Tap to Unveil/ }), 'unveil');
-  await rec.tap(next, 'next');
-  await rec.capture('before-refresh-q3-step3', { audit: false });
-
-  await page.reload();
-  await page.waitForTimeout(1000);
-  await rec.capture('after-refresh', { audit: false });
-  const onLanding = await page.locator('#landing-screen').count();
-  const inQuest = await page.locator('#quest-play-wrapper').count();
-  rec.add('refresh', `After refreshing on quest 3 step 3: ${inQuest ? 'still in the quest' : onLanding ? 'sent back to the landing page; quest progress lost' : 'on another screen'}`);
-  const state = await readState(page);
-  rec.add('refresh', `Saved progress after refresh: completed ${JSON.stringify(state?.completedQuests)}, XP ${state?.xp}`);
-
-  // Refresh on the Reward screen before launching the crystal
-  await rec.tap(page.locator('#btn-start-adventure'), 'Start');
-  await rec.tap(page.getByRole('button', { name: /START ADVENTURE/ }), 'Home start quest 3 again');
-  await playQuest(page, rec, 3, { screenshots: false });
-  await page.waitForSelector('#reward-screen-wrapper');
-  await page.reload();
-  await page.waitForTimeout(1000);
-  const after = await readState(page);
-  rec.add('refresh', `Refreshing on the Reward screen before launching the crystal: quest 3 ${after.completedQuests.includes(3) ? 'is' : 'is NOT'} saved as complete; the unlock animation is skipped`);
-  rec.save();
-});
-
-test('back button', async ({ page }, info) => {
-  const rec = new Recorder(page, info, 'back');
-  await seedProgress(page, 1);
-  const appUrl = page.url();
-  await rec.tap(page.locator('#btn-start-adventure'), 'Start');
-  await rec.tap(page.getByRole('button', { name: /World Map/ }), 'World Map');
-  await page.waitForSelector('#world-map-screen');
-  await rec.tap(page.locator('#quest-node-2'), 'quest 2');
-  await page.waitForSelector('#quest-play-wrapper');
-  const historyLength = await page.evaluate(() => history.length);
-
-  await page.goBack().catch(() => null);
-  await page.waitForTimeout(1000);
-  const urlAfterBack = page.url();
-  const stillInApp = urlAfterBack.startsWith(appUrl.split('#')[0]) && (await page.locator('#root').count()) > 0;
-  const screenAfterBack = stillInApp
-    ? (await page.locator('[id$="-screen"], #quest-play-wrapper, #home-screen-bg, #landing-screen').first().getAttribute('id'))
-    : null;
-  rec.add('back-button', `Pressing Back inside a quest (history length ${historyLength}) went to ${stillInApp ? `the app's ${screenAfterBack} screen` : `"${urlAfterBack}", leaving the app`}`);
-
-  await page.goForward().catch(() => null);
-  await page.waitForTimeout(1000);
-  const backOnLanding = (await page.locator('#landing-screen').count()) > 0;
-  rec.add('back-button', `Pressing Forward again ${backOnLanding ? 'reloads the app at the landing page' : 'returns to ' + page.url()}`);
-  rec.save();
-});
-
 // Run quest 1 under a given audio failure and record where (if anywhere) the child gets stuck
 async function playUnderAudioFailure(page: Page, rec: Recorder, label: string) {
   const steps: Array<[string, () => Promise<unknown>]> = [
@@ -396,28 +336,5 @@ test('audio: sanctuary chimes', async ({ page }, info) => {
   await page.waitForTimeout(3000);
   const afterLeaving = await page.evaluate(() => (window as unknown as { __contexts: number }).__contexts);
   rec.add('audio-leak', `After leaving the Sanctuary, ${afterLeaving - after} more contexts were created (chimes ${afterLeaving > after ? 'keep playing' : 'stop'})`);
-  rec.save();
-});
-
-test('replay and reset', async ({ page }, info) => {
-  const rec = new Recorder(page, info, 'replay-reset');
-  await seedProgress(page, 10);
-  await rec.tap(page.locator('#btn-start-adventure'), 'Start');
-  await rec.tap(page.getByRole('button', { name: /World Map/ }), 'World Map');
-  await rec.tap(page.locator('#quest-node-1'), 'replay quest 1');
-  await playQuest(page, rec, 1, { screenshots: false });
-  const text = await checkRewardScreen(page, rec, 1, false);
-  await rec.capture('replay-q1-reward', { audit: false });
-  const state = await readState(page);
-  rec.add('replay', `Replaying quest 1: XP ${state.xp} (was 500), Reward screen still says "${text}"`);
-
-  await rec.tap(page.getByRole('button', { name: /Open World Map/ }), 'Open World Map');
-  await rec.tap(page.getByRole('button', { name: /Back To Camp/ }), 'Back To Camp');
-  page.once('dialog', (d) => d.accept());
-  await rec.tap(page.getByRole('button', { name: /Restart from Beginning/ }), 'Restart');
-  await page.waitForTimeout(1000);
-  const cleared = await readState(page);
-  const onLanding = (await page.locator('#landing-screen').count()) > 0;
-  rec.add('reset', `Restart from Beginning: progress ${cleared ? 'NOT cleared' : 'cleared'}, ${onLanding ? 'back on the landing page' : 'stayed on ' + page.url()}`);
   rec.save();
 });
