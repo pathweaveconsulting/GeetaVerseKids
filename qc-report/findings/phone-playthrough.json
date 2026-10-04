@@ -1,0 +1,345 @@
+[
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "start",
+    "kind": "request-failed",
+    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "start",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "home-new-player",
+    "kind": "small-tap-target",
+    "detail": "<button> \"Mode: EXPLORER 🔄\" is 141x21px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "home-new-player",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔄 Restart from Beginning\" is 190x29px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "map",
+    "kind": "map-overlap",
+    "detail": "Quest 1 and 2 labels overlap"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "map",
+    "kind": "map-overlap",
+    "detail": "Quest 1/2: a button overlaps the other's label"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "map",
+    "kind": "map-overlap",
+    "detail": "Quest 9/10: a button overlaps the other's label"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "map",
+    "kind": "map-labels",
+    "detail": "Node labels read: Quest 1: The | Quest 2: The | Quest 3: Move | Quest 4: Seeing | Quest 5: Hands | Quest 6: Running | Quest 7: The | Quest 8: Confusion | Quest 9: Arjuna | Quest 10: Seeking"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "map-new-player",
+    "kind": "moving-target",
+    "detail": "map node 1 never stops moving (bounce animation)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "q1-step1-story",
+    "kind": "clipped-text",
+    "detail": "\"dhritarashtra\" shows 62px of 91px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "q1-step2-wisdom-and-chant",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Listen Line\" is 133x38px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "q1-step2-wisdom-and-chant",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🎙️ Tap & Chant\" is 133x38px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "reward-q1",
+    "kind": "moving-target",
+    "detail": "map node 2 never stops moving (bounce animation)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "reward-q2",
+    "kind": "moving-target",
+    "detail": "map node 3 never stops moving (bounce animation)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "reward-q3",
+    "kind": "moving-target",
+    "detail": "map node 4 never stops moving (bounce animation)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "reward-q4",
+    "kind": "moving-target",
+    "detail": "map node 5 never stops moving (bounce animation)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "sanctuary-after-q5",
+    "kind": "small-tap-target",
+    "detail": "<button> \"⬅️ Back To Camp\" is 147x38px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "sanctuary-after-q5",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔇 Play Garden Chimes\" is 188x38px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "home-mid-game",
+    "kind": "small-tap-target",
+    "detail": "<button> \"Mode: EXPLORER 🔄\" is 141x21px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "home-mid-game",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔄 Restart from Beginning\" is 190x29px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "home-mid-game",
+    "kind": "moving-target",
+    "detail": "map node 6 never stops moving (bounce animation)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "reward-q6",
+    "kind": "moving-target",
+    "detail": "map node 7 never stops moving (bounce animation)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "reward-q7",
+    "kind": "moving-target",
+    "detail": "map node 8 never stops moving (bounce animation)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "reward-q8",
+    "kind": "moving-target",
+    "detail": "map node 9 never stops moving (bounce animation)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "reward-q9",
+    "kind": "moving-target",
+    "detail": "map node 10 never stops moving (bounce animation)"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "sanctuary-after-q10",
+    "kind": "small-tap-target",
+    "detail": "<button> \"⬅️ Back To Camp\" is 147x38px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "sanctuary-after-q10",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔇 Play Garden Chimes\" is 188x38px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "sanctuary-item-detail",
+    "kind": "small-tap-target",
+    "detail": "<button> \"⬅️ Back To Camp\" is 147x38px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "sanctuary-item-detail",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔇 Play Garden Chimes\" is 188x38px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "sanctuary-item-detail",
+    "kind": "small-tap-target",
+    "detail": "<button> \"✖️\" is 17x20px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "home-all-complete",
+    "kind": "small-tap-target",
+    "detail": "<button> \"Mode: EXPLORER 🔄\" is 141x21px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "home-all-complete",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔄 Restart from Beginning\" is 190x29px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"Mode: EXPLORER 🔄\" is 141x21px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Chant Verse\" is 220x32px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Chant Verse\" is 220x32px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Chant Verse\" is 220x32px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Chant Verse\" is 220x32px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Chant Verse\" is 220x32px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Chant Verse\" is 220x32px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Chant Verse\" is 220x32px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Chant Verse\" is 220x32px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Chant Verse\" is 220x32px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔊 Chant Verse\" is 220x32px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "small-tap-target",
+    "detail": "<button> \"🔄 Restart from Beginning\" is 190x29px"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "knowledge-river",
+    "kind": "content",
+    "detail": "1 text blocks show literal ** markdown"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "map",
+    "kind": "map-overlap",
+    "detail": "Quest 1 and 2 labels overlap"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "map",
+    "kind": "map-overlap",
+    "detail": "Quest 1/2: a button overlaps the other's label"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "map",
+    "kind": "map-overlap",
+    "detail": "Quest 3/4: a button overlaps the other's label"
+  },
+  {
+    "viewport": "phone",
+    "test": "playthrough",
+    "screen": "map",
+    "kind": "map-overlap",
+    "detail": "Quest 9/10: a button overlaps the other's label"
+  }
+]

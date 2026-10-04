@@ -1,0 +1,44 @@
+[
+  {
+    "viewport": "tablet",
+    "test": "chimes",
+    "screen": "start",
+    "kind": "request-failed",
+    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
+  },
+  {
+    "viewport": "tablet",
+    "test": "chimes",
+    "screen": "start",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
+  },
+  {
+    "viewport": "tablet",
+    "test": "chimes",
+    "screen": "start",
+    "kind": "request-failed",
+    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
+  },
+  {
+    "viewport": "tablet",
+    "test": "chimes",
+    "screen": "start",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
+  },
+  {
+    "viewport": "tablet",
+    "test": "chimes",
+    "screen": "start",
+    "kind": "audio-leak",
+    "detail": "Garden Chimes created 10 new AudioContexts in 15 seconds and never closes them"
+  },
+  {
+    "viewport": "tablet",
+    "test": "chimes",
+    "screen": "start",
+    "kind": "audio-leak",
+    "detail": "After leaving the Sanctuary, 0 more contexts were created (chimes stop)"
+  }
+]

@@ -1,0 +1,79 @@
+[
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "start",
+    "kind": "request-failed",
+    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
+  },
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "start",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
+  },
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "start",
+    "kind": "request-failed",
+    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
+  },
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "start",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
+  },
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "before-refresh-q3-step3",
+    "kind": "request-failed",
+    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
+  },
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "before-refresh-q3-step3",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
+  },
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "after-refresh",
+    "kind": "refresh",
+    "detail": "After refreshing on quest 3 step 3: sent back to the landing page; quest progress lost"
+  },
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "after-refresh",
+    "kind": "refresh",
+    "detail": "Saved progress after refresh: completed [1,2], XP 100"
+  },
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "after-refresh",
+    "kind": "request-failed",
+    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
+  },
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "after-refresh",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
+  },
+  {
+    "viewport": "phone",
+    "test": "refresh",
+    "screen": "after-refresh",
+    "kind": "refresh",
+    "detail": "Refreshing on the Reward screen before launching the crystal: quest 3 is saved as complete; the unlock animation is skipped"
+  }
+]

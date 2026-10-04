@@ -1,0 +1,44 @@
+[
+  {
+    "viewport": "phone",
+    "test": "replay-reset",
+    "screen": "start",
+    "kind": "request-failed",
+    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
+  },
+  {
+    "viewport": "phone",
+    "test": "replay-reset",
+    "screen": "start",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
+  },
+  {
+    "viewport": "phone",
+    "test": "replay-reset",
+    "screen": "start",
+    "kind": "request-failed",
+    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
+  },
+  {
+    "viewport": "phone",
+    "test": "replay-reset",
+    "screen": "start",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
+  },
+  {
+    "viewport": "phone",
+    "test": "replay-reset",
+    "screen": "replay-q1-reward",
+    "kind": "replay",
+    "detail": "Replaying quest 1: XP 500 (was 500), Reward screen still says \"You Unlocked: 🪔 Wisdom Lamp!\""
+  },
+  {
+    "viewport": "phone",
+    "test": "replay-reset",
+    "screen": "replay-q1-reward",
+    "kind": "reset",
+    "detail": "Restart from Beginning: progress cleared, back on the landing page"
+  }
+]

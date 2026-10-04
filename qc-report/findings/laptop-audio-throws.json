@@ -1,0 +1,30 @@
+[
+  {
+    "viewport": "laptop",
+    "test": "audio-throws",
+    "screen": "start",
+    "kind": "request-failed",
+    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
+  },
+  {
+    "viewport": "laptop",
+    "test": "audio-throws",
+    "screen": "start",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
+  },
+  {
+    "viewport": "laptop",
+    "test": "audio-throws",
+    "screen": "start",
+    "kind": "uncaught-exception",
+    "detail": "NotSupportedError: The audio device could not be opened"
+  },
+  {
+    "viewport": "laptop",
+    "test": "audio-throws",
+    "screen": "start",
+    "kind": "audio-failure",
+    "detail": "AudioContext constructor throws: the child gets stuck at \"landing Start Adventure\". The button does nothing."
+  }
+]
