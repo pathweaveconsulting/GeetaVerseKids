@@ -1,8 +1,8 @@
 # GeetaVerse Kids: QC report
 
-## Status update (after the navigation, layout, audio and honesty fixes)
+## Status update (after the navigation, layout, audio, honesty and privacy fixes)
 
-_Re-run on 2026-10-04 at commit `f50f5e8`: all 81 tests passed at phone, tablet and laptop widths (19.2 minutes). The screenshots and findings in this folder are from this run. The original report follows below, unchanged; the table marks what has been fixed since._
+_Re-run on 2026-10-04 at commit `ec5a564`: all 90 tests passed at phone, tablet and laptop widths (19.8 minutes). The screenshots and findings in this folder are from this run. The original report follows below, unchanged; the table marks what has been fixed since._
 
 | # | Problem | Status |
 |---|---|---|
@@ -27,6 +27,15 @@ New strict tests guard the fixes:
 - `qc/audio.spec.ts`: five audio failure modes played through to quest 1's reward, the chimes audio engine count, hung and blocked Google Fonts, chant wording, and stray asterisks.
 
 All 14 problems from the original report are now fixed.
+
+### Privacy and offline claims
+
+- **No third-party requests:** the fonts are now self-hosted (`src/assets/fonts`, OFL-licensed). `qc/privacy.spec.ts` plays through every screen of the production build and fails on any request that doesn't go to the app's own server. It also scans the build for outside addresses; the only ones are XML namespace names, React's error-docs link and a licence comment, none of which are ever requested.
+- **Speech:** narration only uses voices that run on the device. Some browsers offer cloud voices (such as Chrome's "Google" voices), which send the spoken text, including the child's name, to the voice provider. Those are no longer chosen. If a device has no on-device voice, the browser picks its default voice, which the app can't control.
+- **Wording:** the landing page no longer claims "offline-first", because the app needs a connection to load. It now says "Progress is saved only on this device". The profile page's "no tracking" is accurate: there's no analytics, no cookies, no accounts and no third-party requests, and progress is stored only in the browser's local storage on that device.
+- **Still to know:** whoever hosts the app sees normal web-server logs (visitors' IP addresses), as with any website.
+
+The tests now also include `qc/privacy.spec.ts`: third-party requests, the build scan, self-hosted fonts in use, and the privacy wording.
 
 ---
 

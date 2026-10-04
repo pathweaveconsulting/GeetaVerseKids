@@ -4,7 +4,21 @@
     "test": "fonts-blocked",
     "screen": "start",
     "kind": "request-failed",
-    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_FAILED)"
+    "detail": "http://localhost:3000/src/assets/fonts/fredoka-latin-wght-normal.woff2 (net::ERR_FAILED)"
+  },
+  {
+    "viewport": "phone",
+    "test": "fonts-blocked",
+    "screen": "start",
+    "kind": "console-error",
+    "detail": "Failed to load resource: net::ERR_FAILED"
+  },
+  {
+    "viewport": "phone",
+    "test": "fonts-blocked",
+    "screen": "start",
+    "kind": "request-failed",
+    "detail": "http://localhost:3000/src/assets/fonts/quicksand-latin-wght-normal.woff2 (net::ERR_FAILED)"
   },
   {
     "viewport": "phone",

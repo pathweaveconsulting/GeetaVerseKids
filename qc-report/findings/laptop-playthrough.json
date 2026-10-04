@@ -2,20 +2,6 @@
   {
     "viewport": "laptop",
     "test": "playthrough",
-    "screen": "start",
-    "kind": "request-failed",
-    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
-  },
-  {
-    "viewport": "laptop",
-    "test": "playthrough",
-    "screen": "start",
-    "kind": "console-error",
-    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
-  },
-  {
-    "viewport": "laptop",
-    "test": "playthrough",
     "screen": "reward-q7",
     "kind": "moving-target",
     "detail": "map node 8 never stops moving (bounce animation)"
