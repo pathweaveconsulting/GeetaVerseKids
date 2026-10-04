@@ -25,6 +25,7 @@ import WorldMap from './screens/WorldMap';
 import QuestPage from './screens/QuestPage';
 import RewardPage from './screens/RewardPage';
 import WisdomSanctuary from './screens/WisdomSanctuary';
+import SoundNote from './components/SoundNote';
 
 // Each browser history entry carries the session it shows, so Back/Forward
 // (and the phone back gesture) move between app screens. depth counts the
@@ -198,6 +199,8 @@ export default function App() {
 
       {/* Visual background atmospheric particles */}
       <div id="geetaverse-cosmic-glow" className="fixed top-0 left-0 right-0 h-64 bg-gradient-to-b from-yellow-300/10 to-transparent pointer-events-none -z-10" />
+
+      <SoundNote />
 
       {/* Screen swap router wrapper with full transition layout animations */}
       <AnimatePresence mode="wait">

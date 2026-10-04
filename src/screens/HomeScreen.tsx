@@ -361,7 +361,7 @@ export default function HomeScreen({ state, onNavigate, onReset, onStartQuest, o
                     <span className="text-6xl filter drop-shadow">⛵</span>
                     <h4 className="font-display font-black text-lg text-indigo-950 mt-2">The River is Waiting to Flow!</h4>
                     <p className="text-xs text-indigo-900/70 font-semibold max-w-sm leading-relaxed">
-                      Complete some Bhagavad Gita quests on the World Map! Every completed quest floats a glowing **Wisdom Leaf** onto your river representing courage, action, and peace.
+                      Complete some Bhagavad Gita quests on the World Map! Every completed quest floats a glowing <strong>Wisdom Leaf</strong> onto your river representing courage, action, and peace.
                     </p>
                   </div>
                 ) : (
@@ -439,7 +439,10 @@ export default function HomeScreen({ state, onNavigate, onReset, onStartQuest, o
 
               {/* Parent Summary Card */}
               <div className="bg-amber-50/70 p-4 border-t border-amber-100 flex items-center justify-between text-indigo-950 text-xs">
-                <span className="font-semibold">🧑‍👩‍👧 **Parent Corner**: Clean, non-academic Sanskrit familiarity tracking dashboard.</span>
+                <p className="font-semibold">
+                  <span className="block font-black text-sm">🧑‍👩‍👧 Parent Corner</span>
+                  Clean, non-academic Sanskrit familiarity tracking dashboard.
+                </p>
                 <span className="font-black text-amber-900 bg-amber-200/50 px-3 py-1 rounded-full uppercase tracking-wide">
                   VALUABLE INSIGHTS
                 </span>

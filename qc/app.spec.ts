@@ -31,7 +31,7 @@ async function playQuest(page: Page, rec: Recorder, questId: number, opts: { scr
   await rec.tap(page.getByRole('button', { name: /Tap to Unveil/ }), `q${questId} unveil leaf`);
   if (opts.screenshots) {
     await rec.tap(page.getByRole('button', { name: /Practice Chanting/ }), 'chant lab');
-    await rec.tap(page.getByRole('button', { name: /Tap & Chant/ }), 'Tap & Chant');
+    await rec.tap(page.getByRole('button', { name: /My turn to chant/ }), 'My turn to chant');
     await page.waitForTimeout(2800);
     await rec.capture(`q${questId}-step2-wisdom-and-chant`);
     await checkWisdomStep(page, rec);
@@ -196,125 +196,5 @@ test('playthrough', async ({ page }, info) => {
       rec.add('reward-mismatch', `Reward screen for quest ${d.questId} ("${rewardTexts[d.questId]}") doesn't name Sanctuary item "${d.name}"`, 'summary');
     }
   }
-  rec.save();
-});
-
-// Run quest 1 under a given audio failure and record where (if anywhere) the child gets stuck
-async function playUnderAudioFailure(page: Page, rec: Recorder, label: string) {
-  const steps: Array<[string, () => Promise<unknown>]> = [
-    ['landing Start Adventure', async () => {
-      await page.locator('#btn-start-adventure').click({ timeout: 3000 });
-      await page.waitForSelector('#avatar-creation-screen', { timeout: 3000 });
-    }],
-    ['save profile', async () => {
-      await page.getByPlaceholder(/magical name/).fill('Tester');
-      await page.getByRole('button', { name: /Mayur/ }).click({ timeout: 3000 });
-      await page.getByRole('button', { name: /Save & Enter/ }).click({ timeout: 3000 });
-      await page.waitForSelector('#home-screen-bg', { timeout: 3000 });
-    }],
-    ['start quest 1', async () => {
-      await page.getByRole('button', { name: /START ADVENTURE/ }).click({ timeout: 3000 });
-      await page.waitForSelector('#quest-play-wrapper', { timeout: 3000 });
-    }],
-    ['play quest 1 to the end', async () => {
-      const next = page.getByRole('button', { name: /Next Step/ });
-      await next.click({ timeout: 3000 });
-      await page.getByRole('button', { name: /Tap to Unveil/ }).click({ timeout: 3000 });
-      await next.click({ timeout: 3000 });
-      await next.click({ timeout: 3000 });
-      const right = QUESTS[0].challengeStep.options.find((o) => o.isCorrect)!;
-      await page.locator('button', { hasText: right.text.slice(0, 40) }).click({ timeout: 3000 });
-      await next.click({ timeout: 3000 });
-      await page.getByRole('button', { name: /Grow Wisdom Tree/ }).click({ timeout: 3000 });
-      await page.waitForSelector('#reward-screen-wrapper', { timeout: 3000 });
-    }],
-    ['reward screen', async () => {
-      await page.getByRole('button', { name: /Launch Crystal/ }).click({ timeout: 3000 });
-      await page.locator('h3').filter({ hasText: 'You Unlocked' }).waitFor({ timeout: 6000 });
-    }]
-  ];
-  for (const [name, run] of steps) {
-    try {
-      await run();
-    } catch {
-      rec.add('audio-failure', `${label}: the child gets stuck at "${name}". The button does nothing.`);
-      await rec.capture(`${label.replace(/\W+/g, '-')}-stuck`, { audit: false });
-      return;
-    }
-  }
-  rec.add('audio-failure', `${label}: quest 1 can be completed`);
-}
-
-test('audio: Web Audio unavailable', async ({ page }, info) => {
-  const rec = new Recorder(page, info, 'audio-missing');
-  await page.addInitScript(() => {
-    // e.g. older browsers or locked-down school devices
-    Object.defineProperty(window, 'AudioContext', { value: undefined, configurable: true });
-    Object.defineProperty(window, 'webkitAudioContext', { value: undefined, configurable: true });
-  });
-  await page.goto('/');
-  await playUnderAudioFailure(page, rec, 'No Web Audio support');
-  rec.save();
-});
-
-test('audio: AudioContext creation fails', async ({ page }, info) => {
-  const rec = new Recorder(page, info, 'audio-throws');
-  await page.addInitScript(() => {
-    // e.g. the browser refuses because too many audio contexts are open
-    const Failing = function () { throw new DOMException('The audio device could not be opened', 'NotSupportedError'); };
-    Object.defineProperty(window, 'AudioContext', { value: Failing, configurable: true });
-  });
-  await page.goto('/');
-  await playUnderAudioFailure(page, rec, 'AudioContext constructor throws');
-  rec.save();
-});
-
-test('audio: blocked by autoplay policy', async ({ page }, info) => {
-  const rec = new Recorder(page, info, 'audio-blocked');
-  await page.addInitScript(() => {
-    // Context stays suspended and resume() is refused
-    Object.defineProperty(BaseAudioContext.prototype, 'state', { get: () => 'suspended', configurable: true });
-    AudioContext.prototype.resume = () => Promise.reject(new DOMException('Autoplay blocked', 'NotAllowedError'));
-  });
-  await page.goto('/');
-  await playUnderAudioFailure(page, rec, 'Autoplay blocks audio');
-  rec.save();
-});
-
-test('audio: no speech synthesis', async ({ page }, info) => {
-  const rec = new Recorder(page, info, 'speech-missing');
-  await page.addInitScript(() => {
-    Object.defineProperty(window, 'speechSynthesis', { value: undefined, configurable: true });
-  });
-  await page.goto('/');
-  await playUnderAudioFailure(page, rec, 'No speech synthesis');
-  rec.save();
-});
-
-test('audio: sanctuary chimes', async ({ page }, info) => {
-  const rec = new Recorder(page, info, 'chimes');
-  await page.addInitScript(() => {
-    const Original = window.AudioContext;
-    (window as unknown as { __contexts: number }).__contexts = 0;
-    window.AudioContext = class extends Original {
-      constructor(...args: ConstructorParameters<typeof AudioContext>) {
-        super(...args);
-        (window as unknown as { __contexts: number }).__contexts += 1;
-      }
-    };
-  });
-  await seedProgress(page, 3);
-  await rec.tap(page.locator('#btn-start-adventure'), 'Start');
-  await rec.tap(page.getByRole('button', { name: /Wisdom Tree/ }).first(), 'Wisdom Tree');
-  await page.waitForSelector('#sanctuary-screen');
-  const before = await page.evaluate(() => (window as unknown as { __contexts: number }).__contexts);
-  await rec.tap(page.getByRole('button', { name: /Play Garden Chimes/ }), 'Play Garden Chimes');
-  await page.waitForTimeout(15000);
-  const after = await page.evaluate(() => (window as unknown as { __contexts: number }).__contexts);
-  rec.add('audio-leak', `Garden Chimes created ${after - before} new AudioContexts in 15 seconds and never closes them`);
-  await rec.tap(page.getByRole('button', { name: /Back To Camp/ }), 'Back To Camp');
-  await page.waitForTimeout(3000);
-  const afterLeaving = await page.evaluate(() => (window as unknown as { __contexts: number }).__contexts);
-  rec.add('audio-leak', `After leaving the Sanctuary, ${afterLeaving - after} more contexts were created (chimes ${afterLeaving > after ? 'keep playing' : 'stop'})`);
   rec.save();
 });

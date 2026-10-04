@@ -188,9 +188,11 @@ export async function readState(page: Page) {
   return page.evaluate((key) => JSON.parse(localStorage.getItem(key) || 'null'), STORAGE_KEY);
 }
 
-// Put a saved game in place, as if the child had already played
+// Put a saved game in place, as if the child had already played, starting
+// from the landing page (any saved screen is cleared)
 export async function seedProgress(page: Page, completed: number) {
   await page.goto('/');
+  await page.evaluate(() => localStorage.removeItem('geetaverse_kids_session_v1'));
   await page.evaluate(
     ({ key, n }) =>
       localStorage.setItem(

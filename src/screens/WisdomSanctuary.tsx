@@ -34,28 +34,9 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
       // Play a lovely soothing note sequence periodically
       const notes = [261.63, 329.63, 392.00, 523.25, 659.25]; // Warm C-major pentatonic
       
+      // Each note reuses the app's single audio engine
       const intervalId = setInterval(() => {
-        try {
-          const randomNoteIndex = Math.floor(Math.random() * notes.length);
-          const freq = notes[randomNoteIndex];
-          const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, ctx.currentTime);
-          
-          gain.gain.setValueAtTime(0.05, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 1.2);
-          
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          
-          osc.start();
-          osc.stop(ctx.currentTime + 1.2);
-        } catch (e) {
-          console.log("Audio failed to load", e);
-        }
+        playSound.chime(notes[Math.floor(Math.random() * notes.length)]);
       }, 1400);
 
       setSynthInterval(intervalId);

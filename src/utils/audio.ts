@@ -1,24 +1,81 @@
-// Real-time client-side synthesizer using the browser Web Audio API
-// No assets to download, zero network dependencies, 100% operational
+// Real-time client-side synthesizer using the browser Web Audio API.
+// Sound is optional: if the browser has no Web Audio, refuses to start it
+// (autoplay rules) or fails while playing, sound switches off for the session
+// and the app carries on silently. Nothing here ever throws to the caller.
 
 let audioCtx: AudioContext | null = null;
+let effectsOff = false;
+const statusListeners = new Set<() => void>();
 
-function getAudioContext(): AudioContext | null {
+type AudioContextConstructor = new () => AudioContext;
+
+const audioContextConstructor = (): AudioContextConstructor | null => {
   if (typeof window === 'undefined') return null;
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-  }
-  if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-  return audioCtx;
+  const w = window as unknown as { AudioContext?: unknown; webkitAudioContext?: unknown };
+  const ctor = w.AudioContext ?? w.webkitAudioContext;
+  return typeof ctor === 'function' ? (ctor as AudioContextConstructor) : null;
+};
+
+const speechSupported = () => typeof window !== 'undefined' && Boolean(window.speechSynthesis);
+
+function markSoundOff() {
+  if (effectsOff) return;
+  effectsOff = true;
+  statusListeners.forEach((listener) => listener());
 }
+
+// 'on' | 'effects-off' | 'speech-off' | 'all-off'
+export type SoundStatus = 'on' | 'effects-off' | 'speech-off' | 'all-off';
+
+export const getSoundStatus = (): SoundStatus => {
+  const effects = !effectsOff && audioContextConstructor() !== null;
+  const speech = speechSupported();
+  return effects && speech ? 'on' : !effects && !speech ? 'all-off' : effects ? 'speech-off' : 'effects-off';
+};
+
+export const subscribeSoundStatus = (listener: () => void) => {
+  statusListeners.add(listener);
+  return () => {
+    statusListeners.delete(listener);
+  };
+};
+
+// One shared engine for the whole app
+function getAudioContext(): AudioContext | null {
+  if (effectsOff) return null;
+  try {
+    if (!audioCtx) {
+      const Ctor = audioContextConstructor();
+      if (!Ctor) {
+        markSoundOff();
+        return null;
+      }
+      audioCtx = new Ctor();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => markSoundOff());
+    }
+    return audioCtx;
+  } catch {
+    markSoundOff();
+    return null;
+  }
+}
+
+// Run a sound with the shared engine; any failure just turns sound off
+const withAudio = (play: (ctx: AudioContext) => void) => {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    play(ctx);
+  } catch {
+    markSoundOff();
+  }
+};
 
 export const playSound = {
   // Soft playful pop sound when clicking buttons
-  tap: () => {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+  tap: () => withAudio((ctx) => {
     
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -35,12 +92,10 @@ export const playSound = {
     
     osc.start();
     osc.stop(ctx.currentTime + 0.15);
-  },
+  }),
 
   // Magical happy bell tone for correct answers
-  correct: () => {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+  correct: () => withAudio((ctx) => {
 
     const osc1 = ctx.createOscillator();
     const osc2 = ctx.createOscillator();
@@ -64,12 +119,10 @@ export const playSound = {
     osc2.start();
     osc1.stop(ctx.currentTime + 0.4);
     osc2.stop(ctx.currentTime + 0.4);
-  },
+  }),
 
   // Soft springy note for friendly incorrect feedback (no scary buzzers!)
-  joke: () => {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+  joke: () => withAudio((ctx) => {
 
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -87,12 +140,10 @@ export const playSound = {
 
     osc.start();
     osc.stop(ctx.currentTime + 0.3);
-  },
+  }),
 
   // Ascending space-chime for unlocking rewards or opening chests
-  unlock: () => {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+  unlock: () => withAudio((ctx) => {
 
     const notes = [329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // E4, G4, C5, E5, G5, C6
     const duration = 0.08;
@@ -113,12 +164,10 @@ export const playSound = {
       osc.start(ctx.currentTime + idx * duration);
       osc.stop(ctx.currentTime + idx * duration + 0.25);
     });
-  },
+  }),
 
   // A breathtaking shimmering double sweep when the Wisdom Tree repairs
-  success: () => {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+  success: () => withAudio((ctx) => {
 
     // Fast arpeggio G4 -> C5 -> E5 -> G5 -> C6 -> E6 -> G6 -> C7
     const notes = [392.00, 523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00];
@@ -151,7 +200,25 @@ export const playSound = {
       vibrato.stop(ctx.currentTime + idx * duration + 0.6);
       osc.stop(ctx.currentTime + idx * duration + 0.6);
     });
-  }
+  }),
+
+  // One soft note for the Sanctuary's garden chimes
+  chime: (freq: number) => withAudio((ctx) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 1.2);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 1.2);
+  })
 };
 
 let activeCompanionId = 'gaja';

@@ -522,8 +522,7 @@ export default function QuestPage({
                         {isChantFinished ? (
                           <div className="text-center py-2">
                             <span className="text-3xl block">🏆</span>
-                            <p className="font-display font-black text-xs text-indigo-950 mt-1">Sanskrit Chanted Leaf Saved to Knowledge River!</p>
-                            <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mt-0.5">Bonus +50 XP Earned!</p>
+                            <p className="font-display font-black text-xs text-indigo-950 mt-1">Wonderful chanting! You practised every line.</p>
                           </div>
                         ) : (
                           <>
@@ -545,27 +544,20 @@ export default function QuestPage({
                                 🔊 Listen Line
                               </button>
 
-                              {/* Imitate micro blinking recording feedback */}
+                              {/* The child chants aloud; nothing is recorded */}
                               <button
                                 onClick={handleChantRepeat}
                                 disabled={isChantedRepeating}
                                 className={`p-2.5 rounded-xl text-xs font-black text-white cursor-pointer flex items-center justify-center gap-1 shadow-md transition-all ${
                                   isChantedRepeating
-                                    ? 'bg-rose-500 animate-pulse'
+                                    ? 'bg-amber-500'
                                     : 'bg-indigo-600 hover:bg-indigo-700'
                                 }`}
                               >
-                                {isChantedRepeating ? '🎙️ Listening ...' : '🎙️ Tap & Chant'}
+                                {isChantedRepeating ? '🗣️ Say it out loud!' : '🗣️ My turn to chant'}
                               </button>
                             </div>
 
-                            {isChantedRepeating && (
-                              <div className="flex justify-center gap-1 py-1">
-                                <span className="w-1.5 h-3 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                <span className="w-1.5 h-4.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                <span className="w-1.5 h-3 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                              </div>
-                            )}
                           </>
                         )}
                       </div>
