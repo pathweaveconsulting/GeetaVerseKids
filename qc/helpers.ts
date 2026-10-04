@@ -212,3 +212,63 @@ export async function seedProgress(page: Page, completed: number) {
   );
   await page.reload();
 }
+
+export interface FakeVoice {
+  name: string;
+  lang: string;
+  localService: boolean;
+}
+
+// Replace the browser's speech engine with a fake one that records every
+// speak() call in window.__spoken. Voices are available immediately, or
+// only after `lateMs` (announced with a voiceschanged event).
+export async function installFakeSpeech(page: Page, voices: FakeVoice[], lateMs = 0) {
+  await page.addInitScript(
+    ({ voices, lateMs }) => {
+      const w = window as unknown as { __spoken: Array<{ text: string; voice: string | null }> };
+      w.__spoken = [];
+      class FakeUtterance {
+        text: string;
+        voice: FakeVoice | null = null;
+        pitch = 1;
+        rate = 1;
+        lang = '';
+        onend: (() => void) | null = null;
+        constructor(text: string) {
+          this.text = text;
+        }
+      }
+      class FakeSynth extends EventTarget {
+        private available: FakeVoice[] = lateMs > 0 ? [] : voices;
+        speaking = false;
+        pending = false;
+        paused = false;
+        onvoiceschanged: (() => void) | null = null;
+        constructor() {
+          super();
+          if (lateMs > 0) {
+            setTimeout(() => {
+              this.available = voices;
+              this.dispatchEvent(new Event('voiceschanged'));
+            }, lateMs);
+          }
+        }
+        getVoices() {
+          return this.available;
+        }
+        speak(u: FakeUtterance) {
+          w.__spoken.push({ text: u.text, voice: u.voice ? u.voice.name : null });
+        }
+        cancel() {}
+        pause() {}
+        resume() {}
+      }
+      Object.defineProperty(window, 'SpeechSynthesisUtterance', { value: FakeUtterance, configurable: true });
+      Object.defineProperty(window, 'speechSynthesis', { value: new FakeSynth(), configurable: true });
+    },
+    { voices, lateMs }
+  );
+}
+
+export const spokenLines = (page: Page) =>
+  page.evaluate(() => (window as unknown as { __spoken: Array<{ text: string; voice: string | null }> }).__spoken);

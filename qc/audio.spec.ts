@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { QUESTS } from '../src/quests';
-import { Recorder, seedProgress } from './helpers';
+import { Recorder, installFakeSpeech, seedProgress } from './helpers';
 
 // Sound is optional: whatever goes wrong with audio, speech or fonts, a child
 // can still play. These tests are strict.
@@ -105,6 +105,8 @@ for (const failure of FAILURES) {
 
 test('no sound note when audio works', async ({ page }, info) => {
   const rec = new Recorder(page, info, 'audio-working');
+  // A device with an on-device voice (this test browser has none of its own)
+  await installFakeSpeech(page, [{ name: 'Local English', lang: 'en-IN', localService: true }]);
   await page.goto('/');
   await playFirstQuest(page);
   await expect(page.locator('#sound-note')).toHaveCount(0);

@@ -18,10 +18,70 @@ const audioContextConstructor = (): AudioContextConstructor | null => {
 
 const speechSupported = () => typeof window !== 'undefined' && Boolean(window.speechSynthesis);
 
+const notifyStatus = () => statusListeners.forEach((listener) => listener());
+
+// Narration only ever uses on-device voices (localService). Cloud voices,
+// and the browser's default voice which may be one, would send the spoken
+// text, including the child's name, off the device. With no on-device
+// voice the app doesn't speak at all.
+type LocalVoiceState = 'unknown' | 'available' | 'none';
+let localVoiceState: LocalVoiceState = 'unknown';
+let voicesKnown: Promise<void> | null = null;
+
+// Browsers often load voices a moment after the page; wait this long for
+// the voiceschanged event before deciding there is no on-device voice
+export const VOICE_WAIT_MS = 1500;
+
+const localVoices = (): SpeechSynthesisVoice[] => {
+  try {
+    return window.speechSynthesis.getVoices().filter((v) => v.localService === true);
+  } catch {
+    return [];
+  }
+};
+
+const updateLocalVoiceState = () => {
+  const next: LocalVoiceState = localVoices().length > 0 ? 'available' : 'none';
+  if (next !== localVoiceState) {
+    localVoiceState = next;
+    notifyStatus();
+  }
+};
+
+function whenLocalVoicesKnown(): Promise<SpeechSynthesisVoice[]> {
+  if (!speechSupported()) return Promise.resolve([]);
+  if (!voicesKnown) {
+    const synth = window.speechSynthesis;
+    voicesKnown = new Promise<void>((resolve) => {
+      let settled = false;
+      const settle = () => {
+        if (settled) return;
+        settled = true;
+        updateLocalVoiceState();
+        resolve();
+      };
+      // Keep listening: voices that arrive later still count
+      const onVoicesChanged = () => {
+        if (settled) updateLocalVoiceState();
+        else if (localVoices().length > 0) settle();
+      };
+      try {
+        if (typeof synth.addEventListener === 'function') synth.addEventListener('voiceschanged', onVoicesChanged);
+        else synth.onvoiceschanged = onVoicesChanged;
+      } catch {
+        // No voiceschanged support: rely on the timeout below
+      }
+      if (localVoices().length > 0) settle();
+      else setTimeout(settle, VOICE_WAIT_MS);
+    });
+  }
+  return voicesKnown.then(localVoices);
+}
+
 function markSoundOff() {
   if (effectsOff) return;
   effectsOff = true;
-  statusListeners.forEach((listener) => listener());
+  notifyStatus();
 }
 
 // 'on' | 'effects-off' | 'speech-off' | 'all-off'
@@ -29,12 +89,14 @@ export type SoundStatus = 'on' | 'effects-off' | 'speech-off' | 'all-off';
 
 export const getSoundStatus = (): SoundStatus => {
   const effects = !effectsOff && audioContextConstructor() !== null;
-  const speech = speechSupported();
+  const speech = speechSupported() && localVoiceState !== 'none';
   return effects && speech ? 'on' : !effects && !speech ? 'all-off' : effects ? 'speech-off' : 'effects-off';
 };
 
 export const subscribeSoundStatus = (listener: () => void) => {
   statusListeners.add(listener);
+  // Start looking for on-device voices so the read-along note shows early
+  void whenLocalVoicesKnown();
   return () => {
     statusListeners.delete(listener);
   };
@@ -228,12 +290,35 @@ export const setActiveCompanionId = (id: string) => {
 };
 
 // Beautiful high-fidelity children's Speech Synthesis engine (Gita Narrations)
-export const speakText = (text: string, role: 'krishna' | 'arjuna' | 'companion' | 'narrator', onEnd?: () => void, companionId?: string) => {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+type SpeakerRole = 'krishna' | 'arjuna' | 'companion' | 'narrator';
 
+// Bumped on every speak/stop request, so a line waiting for voices to load
+// is dropped if something newer came along
+let speechRequestId = 0;
+
+export const speakText = (text: string, role: SpeakerRole, onEnd?: () => void, companionId?: string) => {
+  if (!speechSupported()) return;
+  const requestId = ++speechRequestId;
   try {
     // Cancel any current narration
     window.speechSynthesis.cancel();
+  } catch {
+    return;
+  }
+  void whenLocalVoicesKnown().then((voices) => {
+    if (requestId !== speechRequestId || voices.length === 0) return;
+    speakWithLocalVoice(text, role, voices, onEnd, companionId);
+  });
+};
+
+const speakWithLocalVoice = (
+  text: string,
+  role: SpeakerRole,
+  voices: SpeechSynthesisVoice[], // on-device voices only, never empty
+  onEnd?: () => void,
+  companionId?: string
+) => {
+  try {
 
     // Strip emoji characters from narration line to avoid reading them aloud as text labels
     const cleanedText = text.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF]/g, '');
@@ -322,11 +407,7 @@ export const speakText = (text: string, role: 'krishna' | 'arjuna' | 'companion'
     }
 
     // Try to locate optimal native audio voices
-    if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.getVoices) {
-      // Only on-device voices: cloud voices (e.g. Chrome's "Google ..." voices)
-      // send the spoken text, which can include the child's name, to the
-      // voice provider's servers
-      const voices = window.speechSynthesis.getVoices().filter((v) => v.localService);
+    {
       let selectedVoice: SpeechSynthesisVoice | null = null;
 
       // Filter all available Indian accent voices (lang ending or containing "IN")
@@ -392,9 +473,8 @@ export const speakText = (text: string, role: 'krishna' | 'arjuna' | 'companion'
         }
       }
 
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
+      // Always an on-device voice, never the browser's default
+      utterance.voice = selectedVoice ?? voices[0];
     }
 
     if (onEnd) {
@@ -408,7 +488,8 @@ export const speakText = (text: string, role: 'krishna' | 'arjuna' | 'companion'
 };
 
 export const stopSpeaking = () => {
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
+  speechRequestId++;
+  if (speechSupported()) {
     window.speechSynthesis.cancel();
   }
 };
