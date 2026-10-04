@@ -16,15 +16,8 @@
   {
     "viewport": "laptop",
     "test": "playthrough",
-    "screen": "home-mid-game",
+    "screen": "reward-q7",
     "kind": "moving-target",
-    "detail": "map node 6 never stops moving (bounce animation)"
-  },
-  {
-    "viewport": "laptop",
-    "test": "playthrough",
-    "screen": "knowledge-river",
-    "kind": "content",
-    "detail": "1 text blocks show literal ** markdown"
+    "detail": "map node 8 never stops moving (bounce animation)"
   }
 ]

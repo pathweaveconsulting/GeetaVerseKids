@@ -12,12 +12,5 @@
     "screen": "start",
     "kind": "console-error",
     "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
-  },
-  {
-    "viewport": "tablet",
-    "test": "playthrough",
-    "screen": "knowledge-river",
-    "kind": "content",
-    "detail": "1 text blocks show literal ** markdown"
   }
 ]

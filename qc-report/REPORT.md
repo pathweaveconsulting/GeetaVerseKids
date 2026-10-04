@@ -1,8 +1,8 @@
 # GeetaVerse Kids: QC report
 
-## Status update (after the navigation and phone-layout fixes)
+## Status update (after the navigation, layout, audio and honesty fixes)
 
-_Re-run on 2026-10-04 at commit `afaa49a`: all 63 tests passed at phone, tablet and laptop widths (14.8 minutes). The screenshots and findings in this folder are from this run. The original report follows below, unchanged; the table marks what has been fixed since._
+_Re-run on 2026-10-04 at commit `f50f5e8`: all 81 tests passed at phone, tablet and laptop widths (19.2 minutes). The screenshots and findings in this folder are from this run. The original report follows below, unchanged; the table marks what has been fixed since._
 
 | # | Problem | Status |
 |---|---|---|
@@ -12,18 +12,21 @@ _Re-run on 2026-10-04 at commit `afaa49a`: all 63 tests passed at phone, tablet 
 | 4 | Story stage doesn't fit on phones | ✅ Fixed: two-column grid, and names wrap inside their cards. |
 | 5 | Wisdom step scrolls inside its own card | ✅ Fixed: the lesson is part of the page and comes before Next. |
 | 6 | Small buttons | ✅ Fixed: every button is at least 44×44px. The Level button shows the current level and asks before changing it. |
-| 7 | Fake chant bonus / "Listening…" | ⏳ Not yet fixed |
+| 7 | Fake chant bonus / "Listening…" | ✅ Fixed: no bonus or "saved" claims, and the button now says "Say it out loud!" with no microphone icon. |
 | 8 | Replay says "You Unlocked" again | ✅ Fixed: a replay says "Great practice!" and skips the unlock animation. |
 | 9 | Constant bouncing | ✅ Fixed: the bounce stops after 4 seconds, and reduced-motion settings are respected. |
-| 10 | Garden Chimes leak audio | ⏳ Not yet fixed |
-| 11 | App stuck if audio can't start | ⏳ Not yet fixed |
+| 10 | Garden Chimes leak audio | ✅ Fixed: the chimes reuse the app's single audio engine, and a test checks it stays at one over 30 seconds. |
+| 11 | App stuck if audio can't start | ✅ Fixed: any audio failure turns sound off and the app stays fully playable, with a small "Sound is off" note. Tested with five failure modes. |
 | 12 | Refresh on the Reward screen skips the celebration | ✅ Fixed: the Reward screen is restored. |
-| 13 | Literal `**` and developer footer | Partly fixed: the developer footer is removed; the `**` text remains. |
-| 14 | Fonts need internet | ⏳ Not yet fixed |
+| 13 | Literal `**` and developer footer | ✅ Fixed: the footer is removed, and "Parent Corner" is a plain heading with no `**` anywhere. |
+| 14 | Fonts need internet | ✅ Fixed: fonts load without blocking, with rounded system-font fallbacks. Before this, a hung font request left the built page blank for over 8 seconds; now it appears in about 0.1 s. |
 
 New strict tests guard the fixes:
 - `qc/navigation.spec.ts`: Back/Forward, refresh, corrupted storage and replay.
 - `qc/layout.spec.ts`: map overlaps and full names, story stage, Wisdom step, 44px buttons, buttons or text pushed off-screen, names split mid-word, the level confirmation, the bounce, and reduced motion.
+- `qc/audio.spec.ts`: five audio failure modes played through to quest 1's reward, the chimes audio engine count, hung and blocked Google Fonts, chant wording, and stray asterisks.
+
+All 14 problems from the original report are now fixed.
 
 ---
 

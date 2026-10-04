@@ -12,26 +12,5 @@
     "screen": "start",
     "kind": "console-error",
     "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
-  },
-  {
-    "viewport": "phone",
-    "test": "playthrough",
-    "screen": "q1-step2-wisdom-and-chant",
-    "kind": "request-failed",
-    "detail": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap (net::ERR_CERT_AUTHORITY_INVALID)"
-  },
-  {
-    "viewport": "phone",
-    "test": "playthrough",
-    "screen": "q1-step2-wisdom-and-chant",
-    "kind": "console-error",
-    "detail": "Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID"
-  },
-  {
-    "viewport": "phone",
-    "test": "playthrough",
-    "screen": "knowledge-river",
-    "kind": "content",
-    "detail": "1 text blocks show literal ** markdown"
   }
 ]
