@@ -8,10 +8,10 @@ import { QUESTS } from './quests';
 // Which SVG artwork WisdomTree draws for a decoration
 export type DecorationArt =
   | 'lamp'
-  | 'feather'
+  | 'chimes'
   | 'lotus'
   | 'mat'
-  | 'bookshelf'
+  | 'pebbles'
   | 'bench'
   | 'leaf'
   | 'lantern'
@@ -37,7 +37,7 @@ const DECORATION_EXTRAS: Record<number, Pick<Decoration, 'emoji' | 'meaning' | '
   2: {
     emoji: '🎐',
     meaning: "Rings out like the conch shells of Kurukshetra. A happy sound can wake up the brave energy sleeping inside you!",
-    art: 'feather'
+    art: 'chimes'
   },
   3: {
     emoji: '🌸',
@@ -52,7 +52,7 @@ const DECORATION_EXTRAS: Record<number, Pick<Decoration, 'emoji' | 'meaning' | '
   5: {
     emoji: '🪨',
     meaning: "Each pebble is one slow breath. When your body feels shaky and wiggly, step stone by stone back to calm.",
-    art: 'bookshelf'
+    art: 'pebbles'
   },
   6: {
     emoji: '🪑',

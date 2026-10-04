@@ -138,34 +138,6 @@ export default function WisdomTree({
           </filter>
         </defs>
 
-        {/* --- DECORATION: PEACOCK FEATHER CROWN - Rendered behind the canopy --- */}
-        {isUnlocked('feather') && (
-          <motion.g
-            id="dec-feather-group"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', delay: 0.5 }}
-            className="cursor-pointer hover:brightness-110"
-            onClick={() => handleDecorationClick('feather')}
-          >
-            {/* Crown of Feathers backing the leaves */}
-            {[...Array(5)].map((_, index) => {
-              const angle = -45 + index * 22.5; // Fan out
-              return (
-                <g key={index} transform={`translate(200, 160) rotate(${angle}) translate(0, -110)`}>
-                  {/* Stem */}
-                  <line x1="0" y1="0" x2="0" y2="80" stroke="#047857" strokeWidth="2.5" />
-                  {/* Feather head */}
-                  <ellipse cx="0" cy="0" rx="16" ry="24" fill="#0D9488" />
-                  <ellipse cx="0" cy="0" rx="10" ry="16" fill="#F59E0B" />
-                  <circle cx="0" cy="0" r="6" fill="#0369A1" />
-                  <circle cx="0" cy="0" r="3" fill="#D946EF" />
-                </g>
-              );
-            })}
-          </motion.g>
-        )}
-
         {/* --- TREE BASE LAND & HILLS --- */}
         <ellipse cx="200" cy="370" rx="140" ry="25" fill="#E2E8F0" />
         <ellipse cx="200" cy="365" rx="120" ry="18" fill={health === 0 ? '#D1D5DB' : '#BBF7D0'} />
@@ -284,6 +256,35 @@ export default function WisdomTree({
           </motion.g>
         )}
 
+        {/* --- GROUND DECORATION: PEBBLE PATH (curves from the mat to between the lotus and the sapling) --- */}
+        {isUnlocked('pebbles') && (
+          <motion.g
+            id="dec-pebbles-group"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring' }}
+            className="cursor-pointer"
+            onClick={() => handleDecorationClick('pebbles')}
+          >
+            {/* Stepping stones, getting smaller as the path winds away */}
+            {[
+              { cx: 232, cy: 391, rx: 10, ry: 4 },
+              { cx: 254, cy: 389, rx: 9.5, ry: 3.8 },
+              { cx: 274, cy: 385, rx: 9, ry: 3.6 },
+              { cx: 293, cy: 380, rx: 8, ry: 3.2 },
+              { cx: 309, cy: 372, rx: 6.5, ry: 2.8 }
+            ].map((stone, i) => (
+              <g key={i}>
+                <ellipse cx={stone.cx} cy={stone.cy} rx={stone.rx} ry={stone.ry} fill="#D1A377" stroke="#92400E" strokeWidth="1" />
+                <ellipse cx={stone.cx - 1.5} cy={stone.cy - 0.8} rx={stone.rx * 0.45} ry={stone.ry * 0.35} fill="#FEF08A" opacity="0.5" />
+              </g>
+            ))}
+            {/* Grass tufts beside the path */}
+            <path d="M243,396 L244,391 L245,396 M246,396 L248,392" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M283,389 L284,384 L285,389" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" />
+          </motion.g>
+        )}
+
         {/* --- MAIN TRUNK --- */}
         <path
           d="M170,365 C175,300 160,250 180,210 C185,200 190,190 200,190 C210,190 215,200 220,210 C240,250 225,300 230,365 Z"
@@ -308,36 +309,8 @@ export default function WisdomTree({
           fill="url(#trunkGrad)"
         />
 
-        {/* --- DECORATION: BOOKSHELF - Built directly inside the tree hollow! --- */}
-        {isUnlocked('bookshelf') ? (
-          <motion.g
-            id="dec-bookshelf-group"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring' }}
-            className="cursor-pointer"
-            onClick={() => handleDecorationClick('bookshelf')}
-          >
-            {/* Tree Hollow Frame */}
-            <ellipse cx="200" cy="275" rx="16" ry="24" fill="#3F2107" />
-            {/* Shelf structure */}
-            <rect x="187" y="272" width="26" height="3" fill="#D97706" rx="1" />
-            <rect x="189" y="284" width="22" height="3" fill="#D97706" rx="1" />
-            {/* Tiny stylized colorful books on the shelves! */}
-            {/* Shelf 1 Books */}
-            <rect x="190" y="260" width="4" height="12" fill="#F43F5E" rx="0.5" />
-            <rect x="195" y="263" width="3.5" height="9" fill="#0EA5E9" rx="0.5" />
-            <line x1="195" y1="265" x2="198" y2="265" stroke="white" strokeWidth="0.5" />
-            <rect x="200" y="258" width="5" height="14" fill="#EAB308" rx="0.5" transform="rotate(10, 202, 265)" />
-            {/* Shelf 2 Books (Scrolls) */}
-            <rect x="192" y="278" width="16" height="6" fill="#FEF08A" rx="2" stroke="#B45309" strokeWidth="0.5" />
-            <circle cx="194" cy="281" r="1" fill="#D97706" />
-            <circle cx="206" cy="281" r="1" fill="#D97706" />
-          </motion.g>
-        ) : (
-          // Simple natural hollow when not unlocked yet
-          <ellipse cx="200" cy="275" rx="12" ry="18" fill="#3F2107" opacity="0.6" />
-        )}
+        {/* Natural tree hollow */}
+        <ellipse cx="200" cy="275" rx="12" ry="18" fill="#3F2107" opacity="0.6" />
 
         {/* --- THE FOLIAGE / CANOPY (Visual Tree Growth) --- */}
         <g id="tree-foliage" className="cursor-pointer" onClick={handleCanopyClick}>
@@ -441,6 +414,46 @@ export default function WisdomTree({
             <circle cx="120" cy="244" r="2.5" stroke="#78350F" strokeWidth="1.5" fill="none" />
             {/* Light aura */}
             <circle cx="120" cy="253" r="14" fill="#F59E0B" opacity="0.3" filter="url(#glow)" />
+          </motion.g>
+        )}
+
+        {/* --- DECORATION: GARDEN CHIMES (hang from the left branch, between the lamp and the trunk) --- */}
+        {isUnlocked('chimes') && (
+          <motion.g
+            id="dec-chimes-group"
+            initial={{ y: -30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 100 }}
+            className="cursor-pointer"
+            onClick={() => handleDecorationClick('chimes')}
+          >
+            {/* Gentle sway in the breeze, pivoting from the branch */}
+            <motion.g
+              animate={{ rotate: [-4, 4, -4] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ originX: 0.5, originY: 0 }}
+            >
+              {/* Rope */}
+              <line x1="152" y1="219" x2="152" y2="230" stroke="#78350F" strokeWidth="1.5" />
+              {/* Wooden top disc */}
+              <ellipse cx="152" cy="231" rx="10" ry="2.5" fill="#D97706" stroke="#92400E" strokeWidth="1" />
+              {/* Strings */}
+              <line x1="146" y1="233" x2="146" y2="236" stroke="#78350F" strokeWidth="0.8" />
+              <line x1="150" y1="233" x2="150" y2="236" stroke="#78350F" strokeWidth="0.8" />
+              <line x1="154" y1="233" x2="154" y2="236" stroke="#78350F" strokeWidth="0.8" />
+              <line x1="158" y1="233" x2="158" y2="236" stroke="#78350F" strokeWidth="0.8" />
+              <line x1="152" y1="233" x2="152" y2="262" stroke="#78350F" strokeWidth="0.8" />
+              {/* Golden chime tubes */}
+              <rect x="144.5" y="236" width="3" height="18" fill="#FBBF24" stroke="#B45309" strokeWidth="0.8" rx="1" />
+              <rect x="148.5" y="236" width="3" height="24" fill="#FBBF24" stroke="#B45309" strokeWidth="0.8" rx="1" />
+              <rect x="152.5" y="236" width="3" height="21" fill="#FBBF24" stroke="#B45309" strokeWidth="0.8" rx="1" />
+              <rect x="156.5" y="236" width="3" height="15" fill="#FBBF24" stroke="#B45309" strokeWidth="0.8" rx="1" />
+              {/* Clapper */}
+              <circle cx="152" cy="250" r="2.5" fill="#EF4444" />
+              {/* Pink wind sail */}
+              <path d="M152,262 C148,266 148,271 152,275 C156,271 156,266 152,262 Z" fill="#EC4899" />
+              <circle cx="152" cy="268" r="1.2" fill="#FEF08A" />
+            </motion.g>
           </motion.g>
         )}
 

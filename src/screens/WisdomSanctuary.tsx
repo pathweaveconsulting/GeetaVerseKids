@@ -125,9 +125,9 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
       <main className="max-w-5xl mx-auto w-full my-4 flex-grow grid grid-cols-1 md:grid-cols-12 gap-6 items-center z-10">
         
         {/* Left Side: Massive Wisdom Tree base (7 cols) */}
-        <div className="col-span-1 md:col-span-7 bg-white/50 backdrop-blur-md border border-white rounded-[32px] p-6 shadow-xl flex items-center justify-center relative min-h-[400px]">
+        <div className="col-span-1 md:col-span-7 bg-white/50 backdrop-blur-md border border-white rounded-[32px] p-6 shadow-xl flex flex-col items-center justify-between gap-3 relative min-h-[400px]">
           
-          <div className="absolute top-4 left-6 bg-indigo-50/80 border border-indigo-100 rounded-full px-3 py-1 text-xs font-black text-indigo-950 pointer-events-none shadow-sm">
+          <div className="self-start bg-indigo-50/80 border border-indigo-100 rounded-full px-3 py-1 text-xs font-black text-indigo-950 pointer-events-none shadow-sm">
             🌲 Active Tree Health: {state.treeHealth}%
           </div>
 
@@ -142,8 +142,8 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
             />
           </div>
 
-          {/* Prompt banner */}
-          <div className="absolute bottom-4 text-center bg-white/80 backdrop-blur-md border border-white px-4 py-2 rounded-full text-[10px] font-black text-indigo-950 shadow-md pointer-events-none">
+          {/* Prompt banner, kept below the tree so it never covers ground decorations */}
+          <div className="text-center bg-white/80 backdrop-blur-md border border-white px-4 py-2 rounded-full text-[10px] font-black text-indigo-950 shadow-md pointer-events-none">
             👉 Tap any accessory on the branches or roots to learn its magical secret!
           </div>
         </div>
