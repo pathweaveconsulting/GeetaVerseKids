@@ -1,0 +1,6 @@
+{
+  "name": "GeetaVerse Kids",
+  "description": "A magical wisdom adventure world for children aged 6-13 inspired by Bhagavad Gita.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
