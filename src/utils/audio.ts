@@ -323,7 +323,10 @@ export const speakText = (text: string, role: 'krishna' | 'arjuna' | 'companion'
 
     // Try to locate optimal native audio voices
     if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.getVoices) {
-      const voices = window.speechSynthesis.getVoices();
+      // Only on-device voices: cloud voices (e.g. Chrome's "Google ..." voices)
+      // send the spoken text, which can include the child's name, to the
+      // voice provider's servers
+      const voices = window.speechSynthesis.getVoices().filter((v) => v.localService);
       let selectedVoice: SpeechSynthesisVoice | null = null;
 
       // Filter all available Indian accent voices (lang ending or containing "IN")

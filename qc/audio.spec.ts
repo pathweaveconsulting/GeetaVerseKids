@@ -153,10 +153,10 @@ test('Garden Chimes reuse one audio engine for 30 seconds', async ({ page }, inf
   expectNoCrashes(rec);
 });
 
-test('readable when Google Fonts never loads', async ({ page }, info) => {
+test('readable when the font files never load', async ({ page }, info) => {
   const rec = new Recorder(page, info, 'fonts-hang');
-  // A filtered network that silently drops the font request
-  await page.route(/fonts\.(googleapis|gstatic)\.com/, () => new Promise(() => {}));
+  // A flaky connection that never delivers the font files
+  await page.route(/\.woff2(\?|$)/, () => new Promise(() => {}));
   const started = Date.now();
   await page.goto('/', { waitUntil: 'commit' });
   await expect(page.locator('#landing-title')).toBeVisible({ timeout: 3000 });
@@ -168,14 +168,14 @@ test('readable when Google Fonts never loads', async ({ page }, info) => {
   rec.save();
 });
 
-test('readable when Google Fonts fails to load', async ({ page }, info) => {
+test('readable when the font files fail to load', async ({ page }, info) => {
   const rec = new Recorder(page, info, 'fonts-blocked');
-  await page.route(/fonts\.(googleapis|gstatic)\.com/, (route) => route.abort());
+  await page.route(/\.woff2(\?|$)/, (route) => route.abort());
   await page.goto('/');
   await expect(page.locator('#landing-title')).toBeVisible();
   const box = await page.locator('#landing-title').boundingBox();
   expect(box!.height).toBeGreaterThan(30);
-  await rec.capture('landing-without-google-fonts', { audit: false });
+  await rec.capture('landing-without-fonts', { audit: false });
   rec.save();
 });
 

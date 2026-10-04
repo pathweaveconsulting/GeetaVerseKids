@@ -276,7 +276,7 @@ export default function AvatarCreation({ onSave, onBack }: AvatarCreationProps) 
 
       {/* Decorative prompt */}
       <p className="text-center text-[11px] text-amber-800/80 font-bold mt-6 z-10">
-        No email, no passcodes, no tracking. All progress stays safely in your browser! 🌐
+        No email, no passwords, no tracking. Your progress is saved only on this device, in this browser.
       </p>
     </div>
   );
