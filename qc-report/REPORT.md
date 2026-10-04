@@ -1,5 +1,34 @@
 # GeetaVerse Kids: QC report
 
+## Status update (after the navigation and phone-layout fixes)
+
+_Re-run on 2026-10-04 at commit `afaa49a`: all 63 tests passed at phone, tablet and laptop widths (14.8 minutes). The screenshots and findings in this folder are from this run. The original report follows below, unchanged; the table marks what has been fixed since._
+
+| # | Problem | Status |
+|---|---|---|
+| 1 | Back button leaves the app | ✅ Fixed: Back and Forward move between app screens. Back from a Reward screen returns to where the quest started, without replaying the celebration. |
+| 2 | Refresh loses the child's place | ✅ Fixed: the screen, quest step and opened wisdom leaf are restored. Corrupted or blocked storage falls back safely. |
+| 3 | Map hides Quest 1 and is cluttered on phones | ✅ Fixed: phones and tablets get a winding trail with full names, and the companion shows as an "is here" chip. The laptop map is re-plotted with full names and the companion above the next node. |
+| 4 | Story stage doesn't fit on phones | ✅ Fixed: two-column grid, and names wrap inside their cards. |
+| 5 | Wisdom step scrolls inside its own card | ✅ Fixed: the lesson is part of the page and comes before Next. |
+| 6 | Small buttons | ✅ Fixed: every button is at least 44×44px. The Level button shows the current level and asks before changing it. |
+| 7 | Fake chant bonus / "Listening…" | ⏳ Not yet fixed |
+| 8 | Replay says "You Unlocked" again | ✅ Fixed: a replay says "Great practice!" and skips the unlock animation. |
+| 9 | Constant bouncing | ✅ Fixed: the bounce stops after 4 seconds, and reduced-motion settings are respected. |
+| 10 | Garden Chimes leak audio | ⏳ Not yet fixed |
+| 11 | App stuck if audio can't start | ⏳ Not yet fixed |
+| 12 | Refresh on the Reward screen skips the celebration | ✅ Fixed: the Reward screen is restored. |
+| 13 | Literal `**` and developer footer | Partly fixed: the developer footer is removed; the `**` text remains. |
+| 14 | Fonts need internet | ⏳ Not yet fixed |
+
+New strict tests guard the fixes:
+- `qc/navigation.spec.ts`: Back/Forward, refresh, corrupted storage and replay.
+- `qc/layout.spec.ts`: map overlaps and full names, story stage, Wisdom step, 44px buttons, buttons or text pushed off-screen, names split mid-word, the level confirmation, the bounce, and reduced motion.
+
+---
+
+## Original report
+
 _Run on 2026-10-04 against branch `claude/reward-pipeline` (commit `17cbd78`), using `npm run qc`. Nothing was fixed._
 
 The automated run played the whole app (onboarding, all 10 quests in order, every Reward screen, the Sanctuary, the Knowledge River, the map, and replay/reset) at three widths: phone (390px), tablet (768px) and laptop (1280px). Separate tests covered refreshing, the Back button and five audio-failure cases. All 27 test runs completed. The findings below come from the recorded checks (`findings/*.json`) and from looking at the 110 screenshots in `screenshots/<width>/`.
