@@ -16,7 +16,9 @@ export default defineConfig(() => {
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      // QC output (screenshots, findings) and build output aren't app source:
+      // watching them reloaded open pages mid-test
+      watch: process.env.DISABLE_HMR === 'true' ? null : { ignored: ['**/qc-report/**', '**/test-results/**', '**/dist/**'] },
     },
   };
 });
