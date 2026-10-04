@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playSound } from '../utils/audio';
 import { Quest, CompanionId } from '../types';
 import WisdomTree from '../components/WisdomTree';
 import { COMPANIONS } from '../quests';
+import { getDecorationForQuest, getUnlockedDecorations } from '../decorations';
 
 interface RewardPageProps {
   quest: Quest;
   companionId: CompanionId;
   previousHealth: number;
   newHealth: number;
-  unlockedItem: string;
+  previouslyCompletedQuests: number[];
   onNext: () => void;
   onGoToSanctuary: () => void;
 }
@@ -20,26 +21,17 @@ export default function RewardPage({
   companionId,
   previousHealth,
   newHealth,
-  unlockedItem,
+  previouslyCompletedQuests,
   onNext,
   onGoToSanctuary
 }: RewardPageProps) {
   const [animationState, setAnimationState] = useState<'idle' | 'flying' | 'impact' | 'completed'>('idle');
   const [currentDisplayHealth, setCurrentDisplayHealth] = useState(previousHealth);
-  const [tempUnlockedDecorations, setTempUnlockedDecorations] = useState<string[]>([]);
+  // Show the tree as it was before this quest, then add this quest's decoration on impact
+  const [displayedCompletedQuests, setDisplayedCompletedQuests] = useState<number[]>(previouslyCompletedQuests);
+  const unlockedDecoration = getDecorationForQuest(quest.id);
   
   const companion = COMPANIONS[companionId];
-
-  // Set initial decorations to previous ones, excluding the newly unlocked one if it wasn't there
-  useEffect(() => {
-    // Generate decorations prior to this unlock
-    const existing: string[] = [];
-    if (quest.id > 1) existing.push('lamp');
-    if (quest.id > 2) existing.push('plant');
-    if (quest.id > 3) existing.push('bookshelf');
-    if (quest.id > 4) existing.push('feather');
-    setTempUnlockedDecorations(existing);
-  }, [quest.id]);
 
   const triggerFlyAnimation = () => {
     playSound.tap();
@@ -52,15 +44,7 @@ export default function RewardPage({
       setCurrentDisplayHealth(newHealth);
       
       // Sprout the new item
-      const itemKey = {
-        1: 'lamp',
-        2: 'plant',
-        3: 'bookshelf',
-        4: 'feather',
-        5: 'tree'
-      }[quest.id] || 'lamp';
-
-      setTempUnlockedDecorations(prev => [...prev, itemKey]);
+      setDisplayedCompletedQuests(prev => prev.includes(quest.id) ? prev : [...prev, quest.id]);
 
       // Complete the scene transition
       setTimeout(() => {
@@ -161,7 +145,7 @@ export default function RewardPage({
         {/* TREE PREVIEW WRAPPER */}
         <div id="tree-preview-reward" className="relative flex flex-col items-center">
           {/* Wisdom Tree viewer using real-time local state */}
-          <WisdomTree health={currentDisplayHealth} unlockedDecorations={tempUnlockedDecorations} size="md" />
+          <WisdomTree health={currentDisplayHealth} unlockedDecorations={getUnlockedDecorations(displayedCompletedQuests)} size="md" />
 
           {/* Dynamic health bar HUD overlay */}
           <div className="w-64 mt-3 bg-slate-800/85 rounded-full h-4.5 border-2 border-indigo-400/40 relative overflow-hidden shadow-inner">
@@ -186,7 +170,7 @@ export default function RewardPage({
             >
               <span className="text-2xl animate-float block">✨</span>
               <h3 className="font-display font-black text-amber-200 text-sm md:text-base leading-none">
-                You Unlocked: {quest.rewardItem}!
+                You Unlocked: {unlockedDecoration?.emoji} {unlockedDecoration?.name ?? quest.rewardItem}!
               </h3>
               <p className="font-sans text-[11px] text-slate-300 mt-1 leading-snug">
                 It has been anchored beautifully in the Sanctuary tree branch. Visit the garden to play with it!

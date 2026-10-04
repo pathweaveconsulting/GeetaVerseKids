@@ -21,7 +21,6 @@ const initialGameState: UserState = {
   companion: null,
   xp: 0,
   completedQuests: [],
-  unlockedDecorations: [],
   treeHealth: 0,
   lastPlayed: new Date().toISOString()
 };
@@ -34,14 +33,16 @@ export default function App() {
   // Transition variables for Reward screen
   const [previousHealth, setPreviousHealth] = useState(0);
   const [newHealthForReward, setNewHealthForReward] = useState(0);
-  const [recentlyUnlockedItem, setRecentlyUnlockedItem] = useState('');
+  const [previouslyCompletedQuests, setPreviouslyCompletedQuests] = useState<number[]>([]);
 
   // 1. Initial State Load from LocalStorage
   useEffect(() => {
     try {
       const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as UserState;
+        // Older saves also stored an unlockedDecorations list; decorations are
+        // now derived from completedQuests, so drop it
+        const { unlockedDecorations: _legacy, ...parsed } = JSON.parse(stored) as UserState & { unlockedDecorations?: unknown };
         // Verify values are sane
         if (parsed.avatar && parsed.companion && parsed.avatarName) {
           setGameState(parsed);
@@ -113,24 +114,6 @@ export default function App() {
       ? gameState.completedQuests 
       : [...gameState.completedQuests, questId].sort((a, b) => a - b);
     
-    // Add decoration unlock keys (scaled up to 10 items)
-    const decorKey = {
-      1: 'lamp',
-      2: 'plant',
-      3: 'bookshelf',
-      4: 'feather',
-      5: 'tree',
-      6: 'lamp',
-      7: 'plant',
-      8: 'bookshelf',
-      9: 'feather',
-      10: 'tree'
-    }[questId] || 'lamp';
-
-    const newDecorations = gameState.unlockedDecorations.includes(decorKey)
-      ? gameState.unlockedDecorations
-      : [...gameState.unlockedDecorations, decorKey];
-
     // Compute progress: 10% health per quest completed (based on 10 quests)
     const prevH = Math.min(gameState.completedQuests.length * 10, 100);
     const nextH = Math.min(newCompleted.length * 10, 100);
@@ -138,7 +121,6 @@ export default function App() {
     const updated: UserState = {
       ...gameState,
       completedQuests: newCompleted,
-      unlockedDecorations: newDecorations,
       xp: isAlreadyCompleted ? gameState.xp : gameState.xp + 50,
       treeHealth: nextH,
       lastPlayed: new Date().toISOString()
@@ -147,7 +129,7 @@ export default function App() {
     // Store state details to pass into the Reward Screen animation
     setPreviousHealth(prevH);
     setNewHealthForReward(nextH);
-    setRecentlyUnlockedItem(quest.rewardItem);
+    setPreviouslyCompletedQuests(gameState.completedQuests);
     
     // Persist details
     saveGameState(updated);
@@ -226,7 +208,7 @@ export default function App() {
               companionId={gameState.companion}
               previousHealth={previousHealth}
               newHealth={newHealthForReward}
-              unlockedItem={recentlyUnlockedItem}
+              previouslyCompletedQuests={previouslyCompletedQuests}
               onNext={() => setCurrentScreen('map')}
               onGoToSanctuary={() => setCurrentScreen('sanctuary')}
             />

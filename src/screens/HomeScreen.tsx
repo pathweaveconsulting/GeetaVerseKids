@@ -4,6 +4,7 @@ import { playSound, speakText, stopSpeaking, setActiveCompanionId } from '../uti
 import { UserState, CompanionId, AvatarId } from '../types';
 import WisdomTree from '../components/WisdomTree';
 import { QUESTS, COMPANIONS } from '../quests';
+import { getUnlockedDecorations } from '../decorations';
 
 interface HomeScreenProps {
   state: UserState;
@@ -192,7 +193,7 @@ export default function HomeScreen({ state, onNavigate, onReset, onStartQuest, o
           </div>
 
           <div className="w-full flex items-center justify-center mt-3">
-            <WisdomTree health={state.treeHealth} unlockedDecorations={state.unlockedDecorations} size="md" />
+            <WisdomTree health={state.treeHealth} unlockedDecorations={getUnlockedDecorations(state.completedQuests)} size="md" />
           </div>
 
           {/* Dynamic health bar */}

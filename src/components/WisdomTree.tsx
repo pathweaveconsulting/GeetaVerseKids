@@ -1,13 +1,14 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { speakText } from '../utils/audio';
+import { Decoration, DecorationArt, DECORATIONS } from '../decorations';
 
 interface WisdomTreeProps {
   health: number; // 0 to 100
-  unlockedDecorations: string[]; // e.g. ['lamp', 'plant', 'bookshelf', 'feather', 'tree']
+  unlockedDecorations: Decoration[];
   size?: 'sm' | 'md' | 'lg' | 'interactive';
   interactive?: boolean;
-  onDecorationClick?: (item: string) => void;
+  onDecorationClick?: (questId: number) => void;
 }
 
 export default function WisdomTree({
@@ -17,33 +18,25 @@ export default function WisdomTree({
   interactive = false,
   onDecorationClick
 }: WisdomTreeProps) {
-  const isUnlocked = (item: string) => unlockedDecorations.includes(item);
+  const decorationFor = (art: DecorationArt) => unlockedDecorations.find((d) => d.art === art);
+  const isUnlocked = (art: DecorationArt) => decorationFor(art) !== undefined;
 
-  const handleElementClick = (item: string) => {
-    // Tap callback
-    onDecorationClick?.(item);
+  const handleDecorationClick = (art: DecorationArt) => {
+    const decoration = decorationFor(art);
+    if (!decoration) return;
+    onDecorationClick?.(decoration.questId);
+    speakText(`${decoration.name}! ${decoration.meaning}`, "narrator");
+  };
 
-    // Dynamic, engaging child-first descriptions spoken in-character with Indian phonetic pronunciation
-    if (item === 'lamp') {
-      speakText("The Hanging Lamp represents Dharma! Let the gold light of righteous action guide your choice!", "narrator");
-    } else if (item === 'plant') {
-      speakText("The Potted Lotus represents Detachment! Live like a pristine lotus blossom, untouched by sticky muddy water!", "narrator");
-    } else if (item === 'bookshelf') {
-      speakText("The Sacred Bookshelf represents Study! Clear your mind to discover ultimate truth and stable attention!", "narrator");
-    } else if (item === 'feather') {
-      speakText("The Peacock Feather represents Sri Krishna! Wear a joy-filled smile and do your life duty with playful courage!", "narrator");
-    } else if (item === 'tree') {
-      speakText("The Meditation Mat represents tranquility! Sit with a tall spine, breathe sweet air, and stand calm!", "narrator");
-    } else if (item === 'canopy') {
-      if (health >= 100) {
-        speakText("Superb! The Wisdom Tree canopy is fully leafy, glowing, and glowing with celestial flowers!", "krishna");
-      } else if (health >= 70) {
-        speakText("Lush Canopy! The branches are full of sweet, glowing blossoms and leaves!", "companion");
-      } else if (health >= 40) {
-        speakText("Growing Canopy! The tree is starting to sprout beautiful green leaves!", "companion");
-      } else {
-        speakText("Budding canopy! Earn more crystals from the world map to make the tree look healthy and green!", "companion");
-      }
+  const handleCanopyClick = () => {
+    if (health >= 100) {
+      speakText("Superb! The Wisdom Tree canopy is fully leafy, glowing, and glowing with celestial flowers!", "krishna");
+    } else if (health >= 70) {
+      speakText("Lush Canopy! The branches are full of sweet, glowing blossoms and leaves!", "companion");
+    } else if (health >= 40) {
+      speakText("Growing Canopy! The tree is starting to sprout beautiful green leaves!", "companion");
+    } else {
+      speakText("Budding canopy! Earn more crystals from the world map to make the tree look healthy and green!", "companion");
     }
   };
 
@@ -145,7 +138,7 @@ export default function WisdomTree({
           </filter>
         </defs>
 
-        {/* --- DECORATION: PEACOCK FEATHER (Quest 4 reward) - Rendered behind the canopy --- */}
+        {/* --- DECORATION: PEACOCK FEATHER CROWN - Rendered behind the canopy --- */}
         {isUnlocked('feather') && (
           <motion.g
             id="dec-feather-group"
@@ -153,7 +146,7 @@ export default function WisdomTree({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', delay: 0.5 }}
             className="cursor-pointer hover:brightness-110"
-            onClick={() => handleElementClick('feather')}
+            onClick={() => handleDecorationClick('feather')}
           >
             {/* Crown of Feathers backing the leaves */}
             {[...Array(5)].map((_, index) => {
@@ -178,15 +171,106 @@ export default function WisdomTree({
         <ellipse cx="200" cy="365" rx="120" ry="18" fill={health === 0 ? '#D1D5DB' : '#BBF7D0'} />
         {health > 0 && <ellipse cx="200" cy="362" rx="90" ry="12" fill="#86EFAC" />}
 
-        {/* --- BACKGROUND DECORATION: MEDITATION SOIL/CUSHION (Quest 5 reward) --- */}
-        {isUnlocked('tree') && (
+        {/* --- GROUND DECORATION: DOLPHIN FOUNTAIN (far left) --- */}
+        {isUnlocked('fountain') && (
+          <motion.g
+            id="dec-fountain-group"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring' }}
+            className="cursor-pointer"
+            onClick={() => handleDecorationClick('fountain')}
+          >
+            <g transform="translate(55, 350)">
+              {/* Stone basin */}
+              <path d="M-24,6 L-20,18 H20 L24,6 Z" fill="#D1A377" stroke="#78350F" strokeWidth="1.5" />
+              <ellipse cx="0" cy="6" rx="24" ry="5" fill="#B45309" />
+              <ellipse cx="0" cy="6" rx="19" ry="3.5" fill="#38BDF8" />
+              {/* Leaping dolphin */}
+              <motion.g
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <path d="M-12,4 C-13,-12 2,-24 14,-12 L17,-10 L12,-9 C4,-17 -5,-10 -7,4 Z" fill="#0EA5E9" stroke="#0369A1" strokeWidth="1" />
+                <path d="M-2,-19 L1,-25 L4,-18 Z" fill="#0369A1" />
+                <path d="M-12,4 L-18,7 L-11,7 L-9,11 Z" fill="#0369A1" />
+                <circle cx="8" cy="-14" r="1.3" fill="#1E293B" />
+              </motion.g>
+              {/* Splash droplets */}
+              <circle cx="16" cy="-3" r="2" fill="#BAE6FD" />
+              <circle cx="20" cy="1" r="1.5" fill="#BAE6FD" />
+              <circle cx="-17" cy="-4" r="1.5" fill="#BAE6FD" />
+            </g>
+          </motion.g>
+        )}
+
+        {/* --- GROUND DECORATION: SUNSET BENCH (left, beside the mat) --- */}
+        {isUnlocked('bench') && (
+          <motion.g
+            id="dec-bench-group"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring' }}
+            className="cursor-pointer"
+            onClick={() => handleDecorationClick('bench')}
+          >
+            <g transform="translate(108, 350)">
+              {/* Setting sun peeking over the backrest */}
+              <circle cx="0" cy="-14" r="13" fill="#F59E0B" opacity="0.3" filter="url(#glow)" />
+              <path d="M-9,-14 A9,9 0 0 1 9,-14 Z" fill="#FB923C" />
+              {/* Backrest posts and slats */}
+              <rect x="-18" y="-17" width="2.5" height="17" fill="#92400E" rx="1" />
+              <rect x="15.5" y="-17" width="2.5" height="17" fill="#92400E" rx="1" />
+              <rect x="-18" y="-14" width="36" height="3" fill="#D97706" rx="1" />
+              <rect x="-18" y="-8" width="36" height="3" fill="#D97706" rx="1" />
+              {/* Seat */}
+              <rect x="-20" y="-2" width="40" height="4" fill="#B45309" stroke="#78350F" strokeWidth="1" rx="1.5" />
+              {/* Legs */}
+              <rect x="-16" y="2" width="3" height="10" fill="#78350F" />
+              <rect x="13" y="2" width="3" height="10" fill="#78350F" />
+            </g>
+          </motion.g>
+        )}
+
+        {/* --- GROUND DECORATION: SACRED MEDITATION TREE (far right) --- */}
+        {isUnlocked('sapling') && (
+          <motion.g
+            id="dec-sapling-group"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring' }}
+            className="cursor-pointer"
+            onClick={() => handleDecorationClick('sapling')}
+          >
+            <g transform="translate(342, 336)">
+              {/* Soft golden halo */}
+              <circle cx="0" cy="-12" r="20" fill="#FDE047" opacity="0.25" filter="url(#glow)" />
+              {/* Grassy mound */}
+              <ellipse cx="0" cy="24" rx="16" ry="4" fill="#86EFAC" />
+              {/* Trunk */}
+              <path d="M-3,24 C-2,12 -4,2 0,-4 C4,2 2,12 3,24 Z" fill="#78350F" />
+              {/* Round canopy */}
+              <circle cx="-9" cy="-4" r="9" fill="#15803D" />
+              <circle cx="9" cy="-4" r="9" fill="#4ADE80" />
+              <circle cx="0" cy="-12" r="12" fill="#22C55E" />
+              {/* Blossoms */}
+              <circle cx="-5" cy="-14" r="2" fill="#EC4899" />
+              <circle cx="6" cy="-9" r="2" fill="#EC4899" />
+              {/* Wisdom star on top */}
+              <path d="M0,-32 L2,-28 L6,-28 L3,-25 L4,-21 L0,-23 L-4,-21 L-3,-25 L-6,-28 L-2,-28 Z" fill="#FDE047" />
+            </g>
+          </motion.g>
+        )}
+
+        {/* --- BACKGROUND DECORATION: MEDITATION MAT --- */}
+        {isUnlocked('mat') && (
           <motion.g
             id="dec-meditation-tree-group"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring' }}
             className="cursor-pointer"
-            onClick={() => handleElementClick('tree')}
+            onClick={() => handleDecorationClick('mat')}
           >
             {/* A beautiful circular golden velvet meditation mat near the roots */}
             <ellipse cx="200" cy="366" rx="65" ry="15" fill="#B45309" stroke="#FBBF24" strokeWidth="3" />
@@ -224,7 +308,7 @@ export default function WisdomTree({
           fill="url(#trunkGrad)"
         />
 
-        {/* --- DECORATION: BOOKSHELF (Quest 3 reward) - Built directly inside the tree hollow! --- */}
+        {/* --- DECORATION: BOOKSHELF - Built directly inside the tree hollow! --- */}
         {isUnlocked('bookshelf') ? (
           <motion.g
             id="dec-bookshelf-group"
@@ -232,7 +316,7 @@ export default function WisdomTree({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring' }}
             className="cursor-pointer"
-            onClick={() => handleElementClick('bookshelf')}
+            onClick={() => handleDecorationClick('bookshelf')}
           >
             {/* Tree Hollow Frame */}
             <ellipse cx="200" cy="275" rx="16" ry="24" fill="#3F2107" />
@@ -256,7 +340,7 @@ export default function WisdomTree({
         )}
 
         {/* --- THE FOLIAGE / CANOPY (Visual Tree Growth) --- */}
-        <g id="tree-foliage" className="cursor-pointer" onClick={() => handleElementClick('canopy')}>
+        <g id="tree-foliage" className="cursor-pointer" onClick={handleCanopyClick}>
           {health === 0 ? (
             // Dry/Bare branches with simple grey/pale green buds to look safe and repairable
             <g id="stage-bare">
@@ -329,7 +413,7 @@ export default function WisdomTree({
           )}
         </g>
 
-        {/* --- DECORATION: LAMP (Quest 1 reward) --- */}
+        {/* --- DECORATION: LAMP --- */}
         {isUnlocked('lamp') && (
           <motion.g
             id="dec-lamp-group"
@@ -337,7 +421,7 @@ export default function WisdomTree({
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 100 }}
             className="cursor-pointer"
-            onClick={() => handleElementClick('lamp')}
+            onClick={() => handleDecorationClick('lamp')}
           >
             {/* Ropes hanging from Branch Left */}
             <line x1="120" y1="210" x2="120" y2="245" stroke="#78350F" strokeWidth="1.5" />
@@ -360,15 +444,15 @@ export default function WisdomTree({
           </motion.g>
         )}
 
-        {/* --- DECORATION: PLANT (Quest 2 reward) --- */}
-        {isUnlocked('plant') && (
+        {/* --- DECORATION: POTTED LOTUS --- */}
+        {isUnlocked('lotus') && (
           <motion.g
             id="dec-plant-group"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring' }}
             className="cursor-pointer"
-            onClick={() => handleElementClick('plant')}
+            onClick={() => handleDecorationClick('lotus')}
           >
             {/* Beautiful potted golden lotus or flower rose on the right base */}
             <g transform="translate(290, 345)">
@@ -391,6 +475,74 @@ export default function WisdomTree({
             </g>
           </motion.g>
         )}
+        {/* --- DECORATION: ETERNAL FLAME LANTERN (hangs from the right branch) --- */}
+        {isUnlocked('lantern') && (
+          <motion.g
+            id="dec-lantern-group"
+            initial={{ y: -30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 100 }}
+            className="cursor-pointer"
+            onClick={() => handleDecorationClick('lantern')}
+          >
+            {/* Rope */}
+            <line x1="280" y1="216" x2="280" y2="238" stroke="#78350F" strokeWidth="1.5" />
+            {/* Light aura */}
+            <circle cx="280" cy="251" r="16" fill="#F59E0B" opacity="0.3" filter="url(#glow)" />
+            {/* Top cap */}
+            <rect x="273" y="237" width="14" height="3" fill="#92400E" rx="1" />
+            {/* Round lantern body with ribs */}
+            <ellipse cx="280" cy="251" rx="11" ry="11" fill="#EF4444" stroke="#92400E" strokeWidth="1" />
+            <ellipse cx="280" cy="251" rx="5" ry="11" fill="none" stroke="#92400E" strokeWidth="0.8" opacity="0.6" />
+            {/* Glowing window */}
+            <ellipse cx="280" cy="252" rx="4.5" ry="6" fill="#FEF08A" opacity="0.85" />
+            {/* Flame */}
+            <motion.path
+              d="M280,248 C278,251 278,254 280,256 C282,254 282,251 280,248 Z"
+              fill="#F59E0B"
+              animate={{ scale: [1, 1.2, 1], y: [0, -1, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
+            {/* Bottom cap and tassel */}
+            <rect x="275" y="261" width="10" height="3" fill="#92400E" rx="1" />
+            <line x1="280" y1="264" x2="280" y2="272" stroke="#FBBF24" strokeWidth="2" />
+          </motion.g>
+        )}
+
+        {/* --- DECORATION: FLOATING LOTUS LEAF (drifts in the sky, upper left) --- */}
+        {isUnlocked('leaf') && (
+          <motion.g
+            id="dec-leaf-group"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring' }}
+            className="cursor-pointer"
+            onClick={() => handleDecorationClick('leaf')}
+          >
+            <motion.g
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <g transform="translate(58, 120)">
+                {/* Lily pad with its notch */}
+                <path d="M0,0 L15,-3 A15.3,15.3 0 1 0 15,3 Z" fill="#22C55E" stroke="#15803D" strokeWidth="1.5" />
+                {/* Veins */}
+                <line x1="0" y1="0" x2="-10" y2="-10" stroke="#15803D" strokeWidth="1" opacity="0.6" />
+                <line x1="0" y1="0" x2="-14" y2="0" stroke="#15803D" strokeWidth="1" opacity="0.6" />
+                <line x1="0" y1="0" x2="-10" y2="10" stroke="#15803D" strokeWidth="1" opacity="0.6" />
+                <line x1="0" y1="0" x2="0" y2="-14" stroke="#15803D" strokeWidth="1" opacity="0.6" />
+                <line x1="0" y1="0" x2="0" y2="14" stroke="#15803D" strokeWidth="1" opacity="0.6" />
+                {/* Little lotus bud resting on the pad */}
+                <ellipse cx="-4" cy="-3" rx="3" ry="5" fill="#F472B6" />
+                <circle cx="-4" cy="-4" r="1.2" fill="#FACC15" />
+                {/* Sparkles underneath */}
+                <circle cx="-8" cy="20" r="1.5" fill="#FEF08A" />
+                <circle cx="6" cy="22" r="1" fill="#FEF08A" />
+              </g>
+            </motion.g>
+          </motion.g>
+        )}
+
       </svg>
 
       {/* Touch-interaction floating indicators (only standard state labels when interactive) */}
@@ -402,8 +554,8 @@ export default function WisdomTree({
             </div>
           )}
           {unlockedDecorations.length > 0 && (
-            <div className="bg-white/95 text-emerald-900 border border-emerald-250 px-3 py-1 rounded-full text-xs font-medium shadow-md">
-              ✨ Unlocked: {unlockedDecorations.length} / 5 magical decors!
+            <div className="bg-white/95 text-emerald-900 border border-emerald-200 px-3 py-1 rounded-full text-xs font-medium shadow-md">
+              ✨ Unlocked: {unlockedDecorations.length} / {DECORATIONS.length} magical decors!
             </div>
           )}
         </div>
