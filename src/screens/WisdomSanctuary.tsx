@@ -4,71 +4,21 @@ import { playSound } from '../utils/audio';
 import { UserState, CompanionId } from '../types';
 import WisdomTree from '../components/WisdomTree';
 import CompanionViewer from '../components/CompanionViewer';
-import { COMPANIONS } from '../quests';
+import { COMPANIONS, QUESTS } from '../quests';
+import { Decoration, DECORATIONS, getDecorationForQuest, getUnlockedDecorations } from '../decorations';
 
 interface WisdomSanctuaryProps {
   state: UserState;
   onBack: () => void;
 }
 
-interface DecorationDetail {
-  id: string;
-  emoji: string;
-  name: string;
-  sourceQuest: string;
-  meaning: string;
-  philosophicValue: string;
-}
-
-const DECORATION_DETAILS: Record<string, DecorationDetail> = {
-  lamp: {
-    id: 'lamp',
-    emoji: '🏮',
-    name: "Golden Oil Lamp",
-    sourceQuest: "Earned from Arjuna (Quest 1)",
-    meaning: "Lights your path when you feel confused. It reminds us that admitting we feel nervous is the first spark of true wisdom!",
-    philosophicValue: "Mental Clarity (Gita 2.7)"
-  },
-  plant: {
-    id: 'plant',
-    emoji: '🪴',
-    name: "Patience Lotus Plant",
-    sourceQuest: "Earned from Veeru (Quest 2)",
-    meaning: "Grown by taking a 3-second pause before acting. It protects your heart from wild impulses and builds inner calmness.",
-    philosophicValue: "Sense Peace (Gita 2.58)"
-  },
-  bookshelf: {
-    id: 'bookshelf',
-    emoji: '📚',
-    name: "Wisdom Scroll Shelf",
-    sourceQuest: "Earned from Mayur (Quest 3)",
-    meaning: "Reminds you to play and study with 100% love, without worrying about the score tables or winning the gold trophy.",
-    philosophicValue: "Karma Yoga Effort (Gita 2.47)"
-  },
-  feather: {
-    id: 'feather',
-    emoji: '🦚',
-    name: "Peacock Plume Crown",
-    sourceQuest: "Earned from Gauri (Quest 4)",
-    meaning: "Anchors you during storms. Reminds us that under the cold winter and hot summer, your sky is always blue and peaceful.",
-    philosophicValue: "Unshakable Tranquility (Gita 2.14)"
-  },
-  tree: {
-    id: 'tree',
-    emoji: '🧘',
-    name: "Golden Meditation Rug",
-    sourceQuest: "Earned from Golden Bridge (Quest 5)",
-    meaning: "Provides a quiet base. Reminds us that large canyons are crossed step-by-step, by placing one foot on the first single stone.",
-    philosophicValue: "Courageous Progression (Gita 18.20)"
-  }
-};
-
 export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps) {
-  const [selectedItem, setSelectedItem] = useState<DecorationDetail | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Decoration | null>(null);
   const [isLofiPlaying, setIsLofiPlaying] = useState(false);
   const [synthInterval, setSynthInterval] = useState<any>(null);
 
   const companion = COMPANIONS[state.companion as CompanionId];
+  const unlockedDecorations = getUnlockedDecorations(state.completedQuests);
 
   // Synthesize soft lofi zen chimes in real-time if toggled!
   const toggleSanctuaryChimes = () => {
@@ -84,28 +34,9 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
       // Play a lovely soothing note sequence periodically
       const notes = [261.63, 329.63, 392.00, 523.25, 659.25]; // Warm C-major pentatonic
       
+      // Each note reuses the app's single audio engine
       const intervalId = setInterval(() => {
-        try {
-          const randomNoteIndex = Math.floor(Math.random() * notes.length);
-          const freq = notes[randomNoteIndex];
-          const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, ctx.currentTime);
-          
-          gain.gain.setValueAtTime(0.05, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 1.2);
-          
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          
-          osc.start();
-          osc.stop(ctx.currentTime + 1.2);
-        } catch (e) {
-          console.log("Audio failed to load", e);
-        }
+        playSound.chime(notes[Math.floor(Math.random() * notes.length)]);
       }, 1400);
 
       setSynthInterval(intervalId);
@@ -119,8 +50,8 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
     };
   }, [synthInterval]);
 
-  const handleItemSelect = (itemKey: string) => {
-    const detail = DECORATION_DETAILS[itemKey];
+  const handleItemSelect = (questId: number) => {
+    const detail = getDecorationForQuest(questId);
     if (detail) {
       playSound.unlock();
       setSelectedItem(detail);
@@ -175,9 +106,9 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
       <main className="max-w-5xl mx-auto w-full my-4 flex-grow grid grid-cols-1 md:grid-cols-12 gap-6 items-center z-10">
         
         {/* Left Side: Massive Wisdom Tree base (7 cols) */}
-        <div className="col-span-1 md:col-span-7 bg-white/50 backdrop-blur-md border border-white rounded-[32px] p-6 shadow-xl flex items-center justify-center relative min-h-[400px]">
+        <div className="col-span-1 md:col-span-7 bg-white/50 backdrop-blur-md border border-white rounded-[32px] p-6 shadow-xl flex flex-col items-center justify-between gap-3 relative min-h-[400px]">
           
-          <div className="absolute top-4 left-6 bg-indigo-50/80 border border-indigo-100 rounded-full px-3 py-1 text-xs font-black text-indigo-950 pointer-events-none shadow-sm">
+          <div className="self-start bg-indigo-50/80 border border-indigo-100 rounded-full px-3 py-1 text-xs font-black text-indigo-950 pointer-events-none shadow-sm">
             🌲 Active Tree Health: {state.treeHealth}%
           </div>
 
@@ -185,15 +116,15 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
             {/* Render Wisdom Tree size="lg" to feel huge and premium */}
             <WisdomTree 
               health={state.treeHealth} 
-              unlockedDecorations={state.unlockedDecorations} 
+              unlockedDecorations={unlockedDecorations} 
               size="lg" 
               interactive={true} 
               onDecorationClick={handleItemSelect}
             />
           </div>
 
-          {/* Prompt banner */}
-          <div className="absolute bottom-4 text-center bg-white/80 backdrop-blur-md border border-white px-4 py-2 rounded-full text-[10px] font-black text-indigo-950 shadow-md pointer-events-none">
+          {/* Prompt banner, kept below the tree so it never covers ground decorations */}
+          <div className="text-center bg-white/80 backdrop-blur-md border border-white px-4 py-2 rounded-full text-[10px] font-black text-indigo-950 shadow-md pointer-events-none">
             👉 Tap any accessory on the branches or roots to learn its magical secret!
           </div>
         </div>
@@ -204,19 +135,18 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
           {/* Unlocked decorative list checklist */}
           <div className="bg-white/50 backdrop-blur-md border border-white rounded-[32px] p-5 shadow-xl">
             <h3 className="font-display font-black text-indigo-950 text-base md:text-lg mb-3 flex items-center gap-2">
-              🏆 Your Restored Gems ({state.unlockedDecorations.length}/5)
+              🏆 Your Restored Gems ({unlockedDecorations.length}/{DECORATIONS.length})
             </h3>
 
             <div className="flex flex-col gap-2">
-              {Object.keys(DECORATION_DETAILS).map((key) => {
-                const item = DECORATION_DETAILS[key];
-                const unlocked = state.unlockedDecorations.includes(key);
+              {DECORATIONS.map((item) => {
+                const unlocked = state.completedQuests.includes(item.questId);
 
                 return (
                   <button
-                    key={key}
+                    key={item.questId}
                     disabled={!unlocked}
-                    onClick={() => handleItemSelect(key)}
+                    onClick={() => handleItemSelect(item.questId)}
                     className={`w-full p-2.5 rounded-2xl border flex items-center justify-between text-left transition-all outline-none ${
                       unlocked
                         ? 'border-indigo-100 bg-white hover:bg-indigo-50/50 cursor-pointer shadow-sm'
@@ -226,7 +156,7 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
                     <div className="flex items-center gap-2.5">
                       <span className="text-xl">{unlocked ? item.emoji : '🔒'}</span>
                       <div className="flex flex-col">
-                        <span className={`text-xs font-black leading-none ${unlocked ? 'text-indigo-950' : 'text-slate-450'}`}>
+                        <span className={`text-xs font-black leading-none ${unlocked ? 'text-indigo-950' : 'text-slate-400'}`}>
                           {item.name}
                         </span>
                         <span className="text-[9px] text-indigo-400 font-extrabold mt-0.5">{item.sourceQuest}</span>
@@ -249,7 +179,7 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
               {selectedItem ? (
                 /* Detail item active modal inside sidebar layout */
                 <motion.div
-                  key={selectedItem.id}
+                  key={selectedItem.questId}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
@@ -265,7 +195,7 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
                     <span className="text-3xl filter drop-shadow">{selectedItem.emoji}</span>
                     <div>
                       <h4 className="font-display font-black text-indigo-950 text-sm md:text-base leading-none">{selectedItem.name}</h4>
-                      <span className="text-[9px] text-indigo-505 font-black uppercase tracking-wider">{selectedItem.philosophicValue}</span>
+                      <span className="text-[9px] text-indigo-500 font-black uppercase tracking-wider">{selectedItem.philosophicValue}</span>
                     </div>
                   </div>
                   <p className="font-sans text-xs text-indigo-900/80 font-bold leading-relaxed">
@@ -288,9 +218,9 @@ export default function WisdomSanctuary({ state, onBack }: WisdomSanctuaryProps)
                       {companion?.name}'s Sanctuary Garden
                     </h4>
                     <p className="font-sans text-[11px] italic text-indigo-900/80 font-bold leading-relaxed mt-1">
-                      "{state.completedQuests.length === 5 
+                      "{state.completedQuests.length === QUESTS.length 
                         ? `Look at this paradise, hero! Every lamp, book, and flower is glowing with the Gita seeds of your heart. You did this!`
-                        : `We have unlocked ${state.unlockedDecorations.length} items so far! Let's do more quests on the road to reach 100% health!`}"
+                        : `We have unlocked ${unlockedDecorations.length} items so far! Let's do more quests on the road to reach 100% health!`}"
                     </p>
                   </div>
                 </motion.div>

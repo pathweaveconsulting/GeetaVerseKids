@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playSound, speakText, stopSpeaking } from '../utils/audio';
 import { Quest, CompanionId } from '../types';
+import { QuestStep } from '../session';
 import { COMPANIONS } from '../quests';
 import CharacterPortrait, { CharacterId } from '../components/CharacterPortrait';
 
@@ -9,16 +10,31 @@ interface QuestPageProps {
   quest: Quest;
   companionId: CompanionId;
   ageGroup?: 'explorer' | 'seeker' | 'guide';
+  // Where to resume, so a refresh returns the child to the same step
+  initialStep?: QuestStep;
+  initialWisdomUncovered?: boolean;
+  isReplay?: boolean;
+  onProgress?: (step: QuestStep, wisdomUncovered: boolean) => void;
   onComplete: (questId: number) => void;
   onExit: () => void;
 }
 
-export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onComplete, onExit }: QuestPageProps) {
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+export default function QuestPage({
+  quest,
+  companionId,
+  ageGroup = 'seeker',
+  initialStep = 1,
+  initialWisdomUncovered = false,
+  isReplay = false,
+  onProgress,
+  onComplete,
+  onExit
+}: QuestPageProps) {
+  const [currentStep, setCurrentStep] = useState<QuestStep>(initialStep);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrectSelected, setIsCorrectSelected] = useState(false);
-  const [uncoveredWisdom, setUncoveredWisdom] = useState(false);
+  const [uncoveredWisdom, setUncoveredWisdom] = useState(initialWisdomUncovered || initialStep > 2);
   const [activeSpeaker, setActiveSpeaker] = useState<CharacterId | null>(null);
   
   // Audio narration controls
@@ -31,6 +47,10 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
   const [isChantFinished, setIsChantFinished] = useState(false);
 
   const companion = COMPANIONS[companionId];
+
+  useEffect(() => {
+    onProgress?.(currentStep, uncoveredWisdom);
+  }, [currentStep, uncoveredWisdom]);
 
   const getQuestCharacters = (questId: number): CharacterId[] => {
     switch (questId) {
@@ -92,17 +112,19 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
     } else if (currentStep === 4) {
       speakText(`Quiz challenge: ${quest.challengeStep.question}`, 'narrator');
     } else if (currentStep === 5) {
-      speakText(`Amazing job! You successfully completed the quest and restored the ${quest.rewardCrystal} and unlocked the ${quest.rewardItem}! Let's merge it into our Wisdom Tree.`, 'companion');
+      speakText(isReplay
+        ? `Amazing job! You finished this quest again. Your ${quest.rewardItem} is still glowing in the Sanctuary!`
+        : `Amazing job! You successfully completed the quest and restored the ${quest.rewardCrystal} and unlocked the ${quest.rewardItem}! Let's merge it into our Wisdom Tree.`, 'companion');
     }
 
     return () => stopSpeaking();
-  }, [currentStep, uncoveredWisdom, isMuted, quest, ageGroup, chantActive]);
+  }, [currentStep, uncoveredWisdom, isMuted, quest, ageGroup, chantActive, isReplay]);
 
   const handleNextStep = () => {
     setActiveSpeaker(null);
     if (currentStep < 5) {
       playSound.tap();
-      setCurrentStep((prev) => (prev + 1) as any);
+      setCurrentStep((prev) => (prev + 1) as QuestStep);
     }
   };
 
@@ -110,7 +132,7 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
     setActiveSpeaker(null);
     if (currentStep > 1) {
       playSound.tap();
-      setCurrentStep((prev) => (prev - 1) as any);
+      setCurrentStep((prev) => (prev - 1) as QuestStep);
     }
   };
 
@@ -276,11 +298,12 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
                   </span>
                 </div>
 
-                <div className="flex justify-center items-end gap-3 z-10 w-full flex-grow pt-2 select-none">
+                <div id="story-stage" className="grid grid-cols-2 sm:flex sm:justify-center items-end gap-2 sm:gap-3 z-10 w-full flex-grow pt-2 select-none">
                   {getQuestCharacters(quest.id).map((charId) => {
                     const isSpeakerActive = activeSpeaker === charId;
                     return (
-                      <motion.div
+                      <motion.button
+                        type="button"
                         key={`stage-${charId}`}
                         onClick={() => {
                           playSound.tap();
@@ -290,21 +313,14 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
                         }}
                         whileHover={{ scale: 1.15 }}
                         whileTap={{ scale: 0.92 }}
-                        className={`flex flex-col items-center cursor-pointer transition-all duration-350 p-1.5 rounded-2xl ${
+                        className={`min-w-0 flex flex-col items-center cursor-pointer transition-all duration-300 p-1.5 rounded-2xl ${
                           isSpeakerActive 
-                            ? 'scale-110 bg-amber-100/70 border-2 border-amber-400 drop-shadow-[0_4px_12px_rgba(251,191,36,0.6)]' 
-                            : 'bg-white/40 hover:bg-white/80 border border-transparent'
+                            ? 'bg-amber-100/70 border-2 border-amber-400 drop-shadow-[0_4px_12px_rgba(251,191,36,0.6)]' 
+                            : 'bg-white/40 hover:bg-white/80 border-2 border-transparent'
                         }`}
                       >
                         <CharacterPortrait id={charId} size="xs" animated={isSpeakerActive} />
-                        <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-full mt-1 ${
-                          isSpeakerActive 
-                            ? 'bg-amber-400 text-amber-950 font-black' 
-                            : 'bg-white/70 text-indigo-950 border border-indigo-50/50'
-                        }`}>
-                          {charId.length > 7 ? `${charId.slice(0, 6)}.` : charId}
-                        </span>
-                      </motion.div>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -375,7 +391,8 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
                   {getQuestCharacters(quest.id).map((charId) => {
                     const isSelected = activeSpeaker === charId;
                     return (
-                      <motion.div 
+                      <motion.button
+                        type="button"
                         key={charId}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -385,17 +402,14 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
                           const speakRole = charId === 'krishna' ? 'krishna' : charId === 'arjuna' ? 'arjuna' : 'narrator';
                           speakText(getCharacterDialogue(charId), speakRole);
                         }}
-                        className={`cursor-pointer p-2 rounded-2xl border transition-all flex flex-col items-center shadow-xs w-20 sm:w-22 text-center ${
+                        className={`cursor-pointer p-2 rounded-2xl border transition-all flex flex-col items-center shadow-xs w-[8.5rem] text-center ${
                           isSelected 
                             ? 'bg-amber-100/60 border-amber-400 ring-2 ring-amber-200' 
                             : 'bg-[#fcfaf5] border-indigo-50/70 hover:border-indigo-200'
                         }`}
                       >
                         <CharacterPortrait id={charId} size="xs" animated={true} />
-                        <span className="text-[9px] font-black uppercase tracking-wider text-amber-900 mt-1 truncate w-full">
-                          {charId}
-                        </span>
-                      </motion.div>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -406,11 +420,12 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
           {/* STEP 2: WISDOM TEACHING WITH SANSKRIT RECITATION, CHANT LAB, AND ACCORDION WORD BREAKINGS */}
           {currentStep === 2 && (
             <motion.div
+              id="wisdom-card"
               key="step-2"
               initial={{ opacity: 0, x: 25 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
-              className="bg-white/80 backdrop-blur-xl border border-white rounded-[32px] md:rounded-[40px] shadow-2xl p-6 md:p-8 w-full relative z-10 flex flex-col items-center max-h-[82vh] overflow-y-auto"
+              className="bg-white/80 backdrop-blur-xl border border-white rounded-[32px] md:rounded-[40px] shadow-2xl p-6 md:p-8 w-full relative z-10 flex flex-col items-center"
             >
               <div className="absolute -top-3.5 left-6 bg-gradient-to-r from-emerald-500 to-indigo-600 text-white font-display font-black text-[10px] px-3.5 py-1 rounded-full uppercase tracking-widest shadow-md">
                 Wisdom Scroll 🍃
@@ -450,7 +465,7 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
                       }}
                       className="flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all"
                     >
-                      <CharacterPortrait id="krishna" size="xs" animated={true} />
+                      <CharacterPortrait id="krishna" size="xs" animated={true} showName={false} />
                       <div className="flex flex-col text-left">
                         <span className="text-[8px] font-black uppercase tracking-widest text-amber-700">Recites Shloka ☸️</span>
                         <span className="font-sans font-black text-[10px] text-indigo-950">Sri Krishna</span>
@@ -470,7 +485,7 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
                         <span className="text-[8px] font-black uppercase tracking-widest text-[#0284C7]">Chants Along 🏹</span>
                         <span className="font-sans font-black text-[10px] text-indigo-950">Arjuna</span>
                       </div>
-                      <CharacterPortrait id="arjuna" size="xs" animated={true} />
+                      <CharacterPortrait id="arjuna" size="xs" animated={true} showName={false} />
                     </div>
                   </div>
 
@@ -507,8 +522,7 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
                         {isChantFinished ? (
                           <div className="text-center py-2">
                             <span className="text-3xl block">🏆</span>
-                            <p className="font-display font-black text-xs text-indigo-950 mt-1">Sanskrit Chanted Leaf Saved to Knowledge River!</p>
-                            <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mt-0.5">Bonus +50 XP Earned!</p>
+                            <p className="font-display font-black text-xs text-indigo-950 mt-1">Wonderful chanting! You practised every line.</p>
                           </div>
                         ) : (
                           <>
@@ -530,27 +544,20 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
                                 🔊 Listen Line
                               </button>
 
-                              {/* Imitate micro blinking recording feedback */}
+                              {/* The child chants aloud; nothing is recorded */}
                               <button
                                 onClick={handleChantRepeat}
                                 disabled={isChantedRepeating}
                                 className={`p-2.5 rounded-xl text-xs font-black text-white cursor-pointer flex items-center justify-center gap-1 shadow-md transition-all ${
                                   isChantedRepeating
-                                    ? 'bg-rose-500 animate-pulse'
+                                    ? 'bg-amber-500'
                                     : 'bg-indigo-600 hover:bg-indigo-700'
                                 }`}
                               >
-                                {isChantedRepeating ? '🎙️ Listening ...' : '🎙️ Tap & Chant'}
+                                {isChantedRepeating ? '🗣️ Say it out loud!' : '🗣️ My turn to chant'}
                               </button>
                             </div>
 
-                            {isChantedRepeating && (
-                              <div className="flex justify-center gap-1 py-1">
-                                <span className="w-1.5 h-3 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                <span className="w-1.5 h-4.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                <span className="w-1.5 h-3 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                              </div>
-                            )}
                           </>
                         )}
                       </div>
@@ -727,18 +734,20 @@ export default function QuestPage({ quest, companionId, ageGroup = 'seeker', onC
               </motion.div>
 
               <h2 className="font-display font-black text-indigo-950 text-2xl md:text-3xl leading-none mt-2">
-                Unwrapped {quest.rewardCrystal}!
+                {isReplay ? 'Quest Complete Again!' : `Unwrapped ${quest.rewardCrystal}!`}
               </h2>
               
               <p className="font-sans text-xs text-indigo-950/70 font-bold max-w-sm mt-3 leading-relaxed">
-                A pristine nugget of Krishna-Arjuna wisdom, glowing with divine values! It will join your collection in the Knowledge River!
+                {isReplay
+                  ? `You already restored the ${quest.rewardCrystal}. Practising again keeps its wisdom bright!`
+                  : 'A pristine nugget of Krishna-Arjuna wisdom, glowing with divine values! It will join your collection in the Knowledge River!'}
               </p>
 
               {/* Reward accessory item details */}
               <div className="my-4 bg-indigo-50/50 border border-indigo-100 rounded-[20px] p-4 flex items-center gap-4 w-full max-w-sm shadow-sm">
                 <span className="text-3xl">🎁</span>
                 <div className="text-left">
-                  <span className="text-[10px] uppercase font-black text-indigo-400 tracking-wider block">Camp Ground Upgrade</span>
+                  <span className="text-[10px] uppercase font-black text-indigo-400 tracking-wider block">{isReplay ? 'Already in Your Sanctuary' : 'Camp Ground Upgrade'}</span>
                   <h4 className="font-display font-black text-indigo-950 text-sm">{quest.rewardItem}</h4>
                 </div>
               </div>

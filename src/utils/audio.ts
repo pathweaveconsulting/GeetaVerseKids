@@ -1,24 +1,143 @@
-// Real-time client-side synthesizer using the browser Web Audio API
-// No assets to download, zero network dependencies, 100% operational
+// Real-time client-side synthesizer using the browser Web Audio API.
+// Sound is optional: if the browser has no Web Audio, refuses to start it
+// (autoplay rules) or fails while playing, sound switches off for the session
+// and the app carries on silently. Nothing here ever throws to the caller.
 
 let audioCtx: AudioContext | null = null;
+let effectsOff = false;
+const statusListeners = new Set<() => void>();
 
-function getAudioContext(): AudioContext | null {
+type AudioContextConstructor = new () => AudioContext;
+
+const audioContextConstructor = (): AudioContextConstructor | null => {
   if (typeof window === 'undefined') return null;
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const w = window as unknown as { AudioContext?: unknown; webkitAudioContext?: unknown };
+  const ctor = w.AudioContext ?? w.webkitAudioContext;
+  return typeof ctor === 'function' ? (ctor as AudioContextConstructor) : null;
+};
+
+const speechSupported = () => typeof window !== 'undefined' && Boolean(window.speechSynthesis);
+
+const notifyStatus = () => statusListeners.forEach((listener) => listener());
+
+// Narration only ever uses on-device voices (localService). Cloud voices,
+// and the browser's default voice which may be one, would send the spoken
+// text, including the child's name, off the device. With no on-device
+// voice the app doesn't speak at all.
+type LocalVoiceState = 'unknown' | 'available' | 'none';
+let localVoiceState: LocalVoiceState = 'unknown';
+let voicesKnown: Promise<void> | null = null;
+
+// Browsers often load voices a moment after the page; wait this long for
+// the voiceschanged event before deciding there is no on-device voice
+export const VOICE_WAIT_MS = 1500;
+
+const localVoices = (): SpeechSynthesisVoice[] => {
+  try {
+    return window.speechSynthesis.getVoices().filter((v) => v.localService === true);
+  } catch {
+    return [];
   }
-  if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
+};
+
+const updateLocalVoiceState = () => {
+  const next: LocalVoiceState = localVoices().length > 0 ? 'available' : 'none';
+  if (next !== localVoiceState) {
+    localVoiceState = next;
+    notifyStatus();
   }
-  return audioCtx;
+};
+
+function whenLocalVoicesKnown(): Promise<SpeechSynthesisVoice[]> {
+  if (!speechSupported()) return Promise.resolve([]);
+  if (!voicesKnown) {
+    const synth = window.speechSynthesis;
+    voicesKnown = new Promise<void>((resolve) => {
+      let settled = false;
+      const settle = () => {
+        if (settled) return;
+        settled = true;
+        updateLocalVoiceState();
+        resolve();
+      };
+      // Keep listening: voices that arrive later still count
+      const onVoicesChanged = () => {
+        if (settled) updateLocalVoiceState();
+        else if (localVoices().length > 0) settle();
+      };
+      try {
+        if (typeof synth.addEventListener === 'function') synth.addEventListener('voiceschanged', onVoicesChanged);
+        else synth.onvoiceschanged = onVoicesChanged;
+      } catch {
+        // No voiceschanged support: rely on the timeout below
+      }
+      if (localVoices().length > 0) settle();
+      else setTimeout(settle, VOICE_WAIT_MS);
+    });
+  }
+  return voicesKnown.then(localVoices);
 }
+
+function markSoundOff() {
+  if (effectsOff) return;
+  effectsOff = true;
+  notifyStatus();
+}
+
+// 'on' | 'effects-off' | 'speech-off' | 'all-off'
+export type SoundStatus = 'on' | 'effects-off' | 'speech-off' | 'all-off';
+
+export const getSoundStatus = (): SoundStatus => {
+  const effects = !effectsOff && audioContextConstructor() !== null;
+  const speech = speechSupported() && localVoiceState !== 'none';
+  return effects && speech ? 'on' : !effects && !speech ? 'all-off' : effects ? 'speech-off' : 'effects-off';
+};
+
+export const subscribeSoundStatus = (listener: () => void) => {
+  statusListeners.add(listener);
+  // Start looking for on-device voices so the read-along note shows early
+  void whenLocalVoicesKnown();
+  return () => {
+    statusListeners.delete(listener);
+  };
+};
+
+// One shared engine for the whole app
+function getAudioContext(): AudioContext | null {
+  if (effectsOff) return null;
+  try {
+    if (!audioCtx) {
+      const Ctor = audioContextConstructor();
+      if (!Ctor) {
+        markSoundOff();
+        return null;
+      }
+      audioCtx = new Ctor();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => markSoundOff());
+    }
+    return audioCtx;
+  } catch {
+    markSoundOff();
+    return null;
+  }
+}
+
+// Run a sound with the shared engine; any failure just turns sound off
+const withAudio = (play: (ctx: AudioContext) => void) => {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    play(ctx);
+  } catch {
+    markSoundOff();
+  }
+};
 
 export const playSound = {
   // Soft playful pop sound when clicking buttons
-  tap: () => {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+  tap: () => withAudio((ctx) => {
     
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -35,12 +154,10 @@ export const playSound = {
     
     osc.start();
     osc.stop(ctx.currentTime + 0.15);
-  },
+  }),
 
   // Magical happy bell tone for correct answers
-  correct: () => {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+  correct: () => withAudio((ctx) => {
 
     const osc1 = ctx.createOscillator();
     const osc2 = ctx.createOscillator();
@@ -64,12 +181,10 @@ export const playSound = {
     osc2.start();
     osc1.stop(ctx.currentTime + 0.4);
     osc2.stop(ctx.currentTime + 0.4);
-  },
+  }),
 
   // Soft springy note for friendly incorrect feedback (no scary buzzers!)
-  joke: () => {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+  joke: () => withAudio((ctx) => {
 
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -87,12 +202,10 @@ export const playSound = {
 
     osc.start();
     osc.stop(ctx.currentTime + 0.3);
-  },
+  }),
 
   // Ascending space-chime for unlocking rewards or opening chests
-  unlock: () => {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+  unlock: () => withAudio((ctx) => {
 
     const notes = [329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // E4, G4, C5, E5, G5, C6
     const duration = 0.08;
@@ -113,12 +226,10 @@ export const playSound = {
       osc.start(ctx.currentTime + idx * duration);
       osc.stop(ctx.currentTime + idx * duration + 0.25);
     });
-  },
+  }),
 
   // A breathtaking shimmering double sweep when the Wisdom Tree repairs
-  success: () => {
-    const ctx = getAudioContext();
-    if (!ctx) return;
+  success: () => withAudio((ctx) => {
 
     // Fast arpeggio G4 -> C5 -> E5 -> G5 -> C6 -> E6 -> G6 -> C7
     const notes = [392.00, 523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00];
@@ -151,7 +262,25 @@ export const playSound = {
       vibrato.stop(ctx.currentTime + idx * duration + 0.6);
       osc.stop(ctx.currentTime + idx * duration + 0.6);
     });
-  }
+  }),
+
+  // One soft note for the Sanctuary's garden chimes
+  chime: (freq: number) => withAudio((ctx) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 1.2);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 1.2);
+  })
 };
 
 let activeCompanionId = 'gaja';
@@ -161,12 +290,35 @@ export const setActiveCompanionId = (id: string) => {
 };
 
 // Beautiful high-fidelity children's Speech Synthesis engine (Gita Narrations)
-export const speakText = (text: string, role: 'krishna' | 'arjuna' | 'companion' | 'narrator', onEnd?: () => void, companionId?: string) => {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+type SpeakerRole = 'krishna' | 'arjuna' | 'companion' | 'narrator';
 
+// Bumped on every speak/stop request, so a line waiting for voices to load
+// is dropped if something newer came along
+let speechRequestId = 0;
+
+export const speakText = (text: string, role: SpeakerRole, onEnd?: () => void, companionId?: string) => {
+  if (!speechSupported()) return;
+  const requestId = ++speechRequestId;
   try {
     // Cancel any current narration
     window.speechSynthesis.cancel();
+  } catch {
+    return;
+  }
+  void whenLocalVoicesKnown().then((voices) => {
+    if (requestId !== speechRequestId || voices.length === 0) return;
+    speakWithLocalVoice(text, role, voices, onEnd, companionId);
+  });
+};
+
+const speakWithLocalVoice = (
+  text: string,
+  role: SpeakerRole,
+  voices: SpeechSynthesisVoice[], // on-device voices only, never empty
+  onEnd?: () => void,
+  companionId?: string
+) => {
+  try {
 
     // Strip emoji characters from narration line to avoid reading them aloud as text labels
     const cleanedText = text.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF]/g, '');
@@ -255,8 +407,7 @@ export const speakText = (text: string, role: 'krishna' | 'arjuna' | 'companion'
     }
 
     // Try to locate optimal native audio voices
-    if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.getVoices) {
-      const voices = window.speechSynthesis.getVoices();
+    {
       let selectedVoice: SpeechSynthesisVoice | null = null;
 
       // Filter all available Indian accent voices (lang ending or containing "IN")
@@ -322,9 +473,8 @@ export const speakText = (text: string, role: 'krishna' | 'arjuna' | 'companion'
         }
       }
 
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
+      // Always an on-device voice, never the browser's default
+      utterance.voice = selectedVoice ?? voices[0];
     }
 
     if (onEnd) {
@@ -338,7 +488,8 @@ export const speakText = (text: string, role: 'krishna' | 'arjuna' | 'companion'
 };
 
 export const stopSpeaking = () => {
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
+  speechRequestId++;
+  if (speechSupported()) {
     window.speechSynthesis.cancel();
   }
 };

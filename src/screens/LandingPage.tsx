@@ -143,7 +143,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
           <span>🐄</span>
         </div>
         <p className="font-sans text-xs text-amber-800/80 font-medium tracking-wide">
-          An offline-first magical quest designed for brave young hearts | Age 6-13
+          A magical wisdom quest for brave young hearts · Ages 6–13 · Progress is saved only on this device
         </p>
       </div>
     </div>

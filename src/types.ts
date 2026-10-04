@@ -21,7 +21,6 @@ export interface UserState {
   ageGroup?: 'explorer' | 'seeker' | 'guide'; // Selected group
   xp: number;
   completedQuests: number[]; // e.g. [1, 2]
-  unlockedDecorations: string[]; // e.g. ['lamp', 'plant']
   treeHealth: number; // 0 to 100
   lastPlayed: string;
 }

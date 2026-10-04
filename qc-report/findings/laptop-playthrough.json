@@ -1,0 +1,9 @@
+[
+  {
+    "viewport": "laptop",
+    "test": "playthrough",
+    "screen": "reward-q9",
+    "kind": "moving-target",
+    "detail": "map node 10 never stops moving (bounce animation)"
+  }
+]
