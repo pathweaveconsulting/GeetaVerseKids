@@ -52,3 +52,22 @@
   background: rgba(217, 119, 6, 0.5);
 }
 
+
+/* Every button is at least 44px in both directions, so small fingers can hit it */
+button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Respect the system "reduce motion" setting for CSS animations
+   (motion/react animations are handled by MotionConfig in App) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

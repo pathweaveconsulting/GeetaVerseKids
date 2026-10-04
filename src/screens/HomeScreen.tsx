@@ -5,6 +5,13 @@ import { UserState, CompanionId, AvatarId } from '../types';
 import WisdomTree from '../components/WisdomTree';
 import { QUESTS, COMPANIONS } from '../quests';
 import { getUnlockedDecorations } from '../decorations';
+import { AgeGroup } from '../session';
+
+const LEVELS: Record<AgeGroup, { emoji: string; name: string; ages: string; blurb: string }> = {
+  explorer: { emoji: '🎨', name: 'Explorer', ages: 'ages 6–8', blurb: 'Short, simple lessons with less reading.' },
+  seeker: { emoji: '🌟', name: 'Seeker', ages: 'ages 9–11', blurb: 'School stories, word meanings and chanting.' },
+  guide: { emoji: '🧠', name: 'Guide', ages: 'ages 12–13', blurb: 'Deeper ideas from the original Gita.' }
+};
 
 interface HomeScreenProps {
   state: UserState;
@@ -22,6 +29,9 @@ export default function HomeScreen({ state, onNavigate, onReset, onStartQuest, o
   // Toggle state variables
   const [showRiver, setShowRiver] = useState(false);
   const [isPlayingRiverWord, setIsPlayingRiverWord] = useState<number | null>(null);
+  // Changing the level is a two-step choice so a stray tap can't change it
+  const [levelPickerOpen, setLevelPickerOpen] = useState(false);
+  const [pendingLevel, setPendingLevel] = useState<AgeGroup | null>(null);
 
   useEffect(() => {
     if (state.companion) {
@@ -67,15 +77,17 @@ export default function HomeScreen({ state, onNavigate, onReset, onStartQuest, o
     }
   };
 
-  const cycleAgeGroup = () => {
-    if (!onUpdateAgeGroup) return;
-    playSound.tap();
-    const nextGroup = {
-      explorer: 'seeker',
-      seeker: 'guide',
-      guide: 'explorer'
-    }[currentAge] as 'explorer' | 'seeker' | 'guide';
-    onUpdateAgeGroup(nextGroup);
+  const closeLevelPicker = () => {
+    setLevelPickerOpen(false);
+    setPendingLevel(null);
+  };
+
+  const confirmLevelChange = () => {
+    if (pendingLevel && onUpdateAgeGroup) {
+      playSound.unlock();
+      onUpdateAgeGroup(pendingLevel);
+    }
+    closeLevelPicker();
   };
 
   const handleRiverShlokaHear = (qId: number, text: string) => {
@@ -98,7 +110,7 @@ export default function HomeScreen({ state, onNavigate, onReset, onStartQuest, o
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-200 rounded-full blur-[120px] opacity-30 pointer-events-none" />
 
       {/* 1. Header Row */}
-      <header id="home-header" className="max-w-5xl mx-auto w-full bg-white/60 backdrop-blur-md border border-white rounded-[32px] md:rounded-full p-4 px-6 shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 z-10">
+      <header id="home-header" className="max-w-5xl mx-auto w-full bg-white/60 backdrop-blur-md border border-white rounded-[32px] md:rounded-full p-4 px-6 shadow-xl flex flex-wrap justify-center lg:justify-between items-center gap-4 z-10">
         
         {/* Profile Card left */}
         <div className="flex items-center gap-3">
@@ -114,19 +126,21 @@ export default function HomeScreen({ state, onNavigate, onReset, onStartQuest, o
             <span className="font-display font-black text-amber-950 text-base leading-tight">
               {state.avatarName}
             </span>
-            {/* Age group pill switcher toggle */}
+            {/* Adventure level: shows the current level; changing it asks first */}
             <button
-              onClick={cycleAgeGroup}
-              title="Click to cycle adventure difficulty levels!"
-              className={`mt-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border cursor-pointer transition-all w-fit ${
+              id="level-button"
+              onClick={() => { playSound.tap(); setLevelPickerOpen(true); }}
+              aria-haspopup="dialog"
+              className={`mt-1 text-xs font-black px-3 rounded-full border cursor-pointer transition-all w-fit flex items-center gap-1.5 whitespace-nowrap ${
                 currentAge === 'explorer' 
-                  ? 'bg-emerald-50 border-emerald-250 text-emerald-805'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                   : currentAge === 'guide'
-                    ? 'bg-rose-50 border-rose-250 text-rose-805'
-                    : 'bg-amber-50 border-amber-250 text-amber-805'
+                    ? 'bg-rose-50 border-rose-200 text-rose-800'
+                    : 'bg-amber-50 border-amber-200 text-amber-800'
               }`}
             >
-              Mode: {currentAge.toUpperCase()} 🔄
+              {LEVELS[currentAge].emoji} Level: {LEVELS[currentAge].name}
+              <span className="font-bold opacity-70">({LEVELS[currentAge].ages})</span>
             </button>
           </div>
         </div>
@@ -151,7 +165,7 @@ export default function HomeScreen({ state, onNavigate, onReset, onStartQuest, o
         </div>
 
         {/* Right Menu Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-center gap-2">
           {/* Knowledge River trigger */}
           <button
             onClick={() => { playSound.tap(); setShowRiver(true); }}
@@ -435,12 +449,99 @@ export default function HomeScreen({ state, onNavigate, onReset, onStartQuest, o
         )}
       </AnimatePresence>
 
+      {/* Adventure level picker */}
+      <AnimatePresence>
+        {levelPickerOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-indigo-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={closeLevelPicker}
+          >
+            <motion.div
+              id="level-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="level-dialog-title"
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-[#fcfaf5] w-full max-w-md rounded-[32px] shadow-2xl border-4 border-indigo-100 p-6 text-indigo-950"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {pendingLevel === null ? (
+                <>
+                  <h2 id="level-dialog-title" className="font-display font-black text-xl">Adventure Level</h2>
+                  <p className="text-sm font-bold mt-1 mb-4">
+                    You are playing as{' '}
+                    <span className="whitespace-nowrap">{LEVELS[currentAge].emoji} {LEVELS[currentAge].name} ({LEVELS[currentAge].ages})</span>.
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {(Object.keys(LEVELS) as AgeGroup[]).map((level) => {
+                      const isCurrent = level === currentAge;
+                      return (
+                        <button
+                          key={level}
+                          disabled={isCurrent}
+                          onClick={() => { playSound.tap(); setPendingLevel(level); }}
+                          className={`w-full text-left px-4 py-3 rounded-2xl border-2 flex items-center gap-3 ${
+                            isCurrent ? 'border-indigo-400 bg-indigo-50 cursor-default' : 'border-indigo-100 bg-white hover:bg-indigo-50/50 cursor-pointer'
+                          }`}
+                        >
+                          <span className="text-2xl">{LEVELS[level].emoji}</span>
+                          <span className="flex-1">
+                            <span className="block font-black text-sm">{LEVELS[level].name} <span className="font-bold opacity-70">({LEVELS[level].ages})</span></span>
+                            <span className="block text-xs font-semibold text-indigo-900/70">{LEVELS[level].blurb}</span>
+                          </span>
+                          {isCurrent && <span className="text-[10px] font-black uppercase bg-indigo-600 text-white px-2 py-1 rounded-full">Current</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    onClick={closeLevelPicker}
+                    className="mt-4 w-full px-4 py-3 rounded-full font-black text-sm bg-white border border-indigo-100 hover:bg-indigo-50 cursor-pointer"
+                  >
+                    Keep {LEVELS[currentAge].name}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h2 id="level-dialog-title" className="font-display font-black text-xl">
+                    Switch to {LEVELS[pendingLevel].emoji} {LEVELS[pendingLevel].name}?
+                  </h2>
+                  <p className="text-sm font-bold mt-2 mb-5">
+                    Stories and lessons will change to the {LEVELS[pendingLevel].name} level ({LEVELS[pendingLevel].ages}). Your crystals and Wisdom Tree stay the same.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      id="level-confirm"
+                      onClick={confirmLevelChange}
+                      className="flex-1 px-4 py-3 rounded-full font-black text-sm text-white bg-gradient-to-r from-indigo-500 to-indigo-600 cursor-pointer"
+                    >
+                      Yes, switch to {LEVELS[pendingLevel].name}
+                    </button>
+                    <button
+                      id="level-cancel"
+                      onClick={closeLevelPicker}
+                      className="flex-1 px-4 py-3 rounded-full font-black text-sm bg-white border border-indigo-100 hover:bg-indigo-50 cursor-pointer"
+                    >
+                      No, keep {LEVELS[currentAge].name}
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 3. Footer Reset Actions */}
       <footer id="home-footer-row" className="max-w-5xl mx-auto w-full pt-4 border-t border-amber-200/50 flex justify-between items-center z-10 text-[10px] text-amber-700/80 font-bold uppercase tracking-wider">
         <span>© GeetaVerse Kids Game</span>
         <button
           onClick={handleResetClick}
-          className="hover:text-red-700 cursor-pointer bg-white/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-red-150 hover:bg-red-50 transition-all font-bold shadow-sm"
+          className="hover:text-red-700 cursor-pointer bg-white/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-red-200 hover:bg-red-50 transition-all font-bold shadow-sm"
         >
           🔄 Restart from Beginning
         </button>

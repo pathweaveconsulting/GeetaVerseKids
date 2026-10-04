@@ -41,7 +41,7 @@ export default function CharacterPortrait({ id, size = 'md', animated = true }: 
   }[id];
 
   return (
-    <div id={`portrait-${id}-container`} className="flex flex-col items-center justify-center">
+    <div id={`portrait-${id}-container`} className="flex flex-col items-center justify-center max-w-full">
       <motion.div
         id={`portrait-art-${id}`}
         {...animationProps}
@@ -376,8 +376,8 @@ export default function CharacterPortrait({ id, size = 'md', animated = true }: 
       </motion.div>
 
       {/* Auxiliary Label */}
-      <div id={`portrait-label-${id}`} className="text-center mt-1 pointer-events-none z-10">
-        <span className="text-[10px] bg-indigo-50 text-indigo-950 font-black px-2.5 py-1 rounded-full uppercase tracking-wider border border-indigo-100">
+      <div id={`portrait-label-${id}`} className="text-center mt-1 pointer-events-none z-10 max-w-full">
+        <span className="inline-block max-w-full text-[10px] leading-tight bg-indigo-50 text-indigo-950 font-black px-2 py-1 rounded-xl uppercase tracking-wide border border-indigo-100 [overflow-wrap:anywhere]">
           {nameLabel}
         </span>
       </div>

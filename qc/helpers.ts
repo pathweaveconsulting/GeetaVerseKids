@@ -105,6 +105,16 @@ export class Recorder {
         }
       });
 
+      // Buttons and text pushed off the side of the screen, even when a wrapper hides them
+      const offscreen: string[] = [];
+      document.querySelectorAll('button, a, h1, h2, h3, h4, p, span').forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0 || !(el.textContent || '').trim()) return;
+        if (getComputedStyle(el).visibility === 'hidden' || el.closest('[aria-hidden="true"]')) return;
+        if (el.closest('.pointer-events-none') && el.tagName !== 'BUTTON') return; // decorative layers
+        if (r.right > vw + 1 || r.left < -1) offscreen.push(`${describe(el)} is cut off at ${Math.round(r.left)}..${Math.round(r.right)}px (viewport ${vw}px)`);
+      });
+
       // Text that is cut off by truncation / overflow:hidden
       const clipped: string[] = [];
       document.querySelectorAll('body *').forEach((el) => {
@@ -122,12 +132,12 @@ export class Recorder {
         if (img.complete && img.naturalWidth === 0) broken.push(img.src);
       });
 
-      // Small tap targets (under 40px) on buttons
+      // Small tap targets (under 44px) on buttons
       const small: string[] = [];
       document.querySelectorAll('button').forEach((b) => {
         const r = b.getBoundingClientRect();
         if (r.width === 0 || r.height === 0) return;
-        if (r.height < 40 || r.width < 40) small.push(`${describe(b)} is ${Math.round(r.width)}x${Math.round(r.height)}px`);
+        if (r.height < 43.5 || r.width < 43.5) small.push(`${describe(b)} is ${Math.round(r.width)}x${Math.round(r.height)}px`);
       });
 
       return {
@@ -135,6 +145,7 @@ export class Recorder {
         scrollWidth: document.documentElement.scrollWidth,
         vw,
         overflow,
+        offscreen,
         clipped,
         broken,
         small
@@ -142,6 +153,7 @@ export class Recorder {
     });
     if (result.pageScrollsSideways) this.add('horizontal-scroll', `page is ${result.scrollWidth}px wide in a ${result.vw}px viewport`);
     result.overflow.forEach((d) => this.add('layout-overflow', d));
+    result.offscreen.forEach((d) => this.add('offscreen-content', d));
     result.clipped.forEach((d) => this.add('clipped-text', d));
     result.broken.forEach((d) => this.add('broken-image', d));
     result.small.forEach((d) => this.add('small-tap-target', d));

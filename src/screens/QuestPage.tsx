@@ -298,11 +298,12 @@ export default function QuestPage({
                   </span>
                 </div>
 
-                <div className="flex justify-center items-end gap-3 z-10 w-full flex-grow pt-2 select-none">
+                <div id="story-stage" className="grid grid-cols-2 sm:flex sm:justify-center items-end gap-2 sm:gap-3 z-10 w-full flex-grow pt-2 select-none">
                   {getQuestCharacters(quest.id).map((charId) => {
                     const isSpeakerActive = activeSpeaker === charId;
                     return (
-                      <motion.div
+                      <motion.button
+                        type="button"
                         key={`stage-${charId}`}
                         onClick={() => {
                           playSound.tap();
@@ -312,21 +313,14 @@ export default function QuestPage({
                         }}
                         whileHover={{ scale: 1.15 }}
                         whileTap={{ scale: 0.92 }}
-                        className={`flex flex-col items-center cursor-pointer transition-all duration-350 p-1.5 rounded-2xl ${
+                        className={`min-w-0 flex flex-col items-center cursor-pointer transition-all duration-300 p-1.5 rounded-2xl ${
                           isSpeakerActive 
-                            ? 'scale-110 bg-amber-100/70 border-2 border-amber-400 drop-shadow-[0_4px_12px_rgba(251,191,36,0.6)]' 
-                            : 'bg-white/40 hover:bg-white/80 border border-transparent'
+                            ? 'bg-amber-100/70 border-2 border-amber-400 drop-shadow-[0_4px_12px_rgba(251,191,36,0.6)]' 
+                            : 'bg-white/40 hover:bg-white/80 border-2 border-transparent'
                         }`}
                       >
                         <CharacterPortrait id={charId} size="xs" animated={isSpeakerActive} />
-                        <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-full mt-1 ${
-                          isSpeakerActive 
-                            ? 'bg-amber-400 text-amber-950 font-black' 
-                            : 'bg-white/70 text-indigo-950 border border-indigo-50/50'
-                        }`}>
-                          {charId.length > 7 ? `${charId.slice(0, 6)}.` : charId}
-                        </span>
-                      </motion.div>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -397,7 +391,8 @@ export default function QuestPage({
                   {getQuestCharacters(quest.id).map((charId) => {
                     const isSelected = activeSpeaker === charId;
                     return (
-                      <motion.div 
+                      <motion.button
+                        type="button"
                         key={charId}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -407,17 +402,14 @@ export default function QuestPage({
                           const speakRole = charId === 'krishna' ? 'krishna' : charId === 'arjuna' ? 'arjuna' : 'narrator';
                           speakText(getCharacterDialogue(charId), speakRole);
                         }}
-                        className={`cursor-pointer p-2 rounded-2xl border transition-all flex flex-col items-center shadow-xs w-20 sm:w-22 text-center ${
+                        className={`cursor-pointer p-2 rounded-2xl border transition-all flex flex-col items-center shadow-xs w-[8.5rem] text-center ${
                           isSelected 
                             ? 'bg-amber-100/60 border-amber-400 ring-2 ring-amber-200' 
                             : 'bg-[#fcfaf5] border-indigo-50/70 hover:border-indigo-200'
                         }`}
                       >
                         <CharacterPortrait id={charId} size="xs" animated={true} />
-                        <span className="text-[9px] font-black uppercase tracking-wider text-amber-900 mt-1 truncate w-full">
-                          {charId}
-                        </span>
-                      </motion.div>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -428,11 +420,12 @@ export default function QuestPage({
           {/* STEP 2: WISDOM TEACHING WITH SANSKRIT RECITATION, CHANT LAB, AND ACCORDION WORD BREAKINGS */}
           {currentStep === 2 && (
             <motion.div
+              id="wisdom-card"
               key="step-2"
               initial={{ opacity: 0, x: 25 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
-              className="bg-white/80 backdrop-blur-xl border border-white rounded-[32px] md:rounded-[40px] shadow-2xl p-6 md:p-8 w-full relative z-10 flex flex-col items-center max-h-[82vh] overflow-y-auto"
+              className="bg-white/80 backdrop-blur-xl border border-white rounded-[32px] md:rounded-[40px] shadow-2xl p-6 md:p-8 w-full relative z-10 flex flex-col items-center"
             >
               <div className="absolute -top-3.5 left-6 bg-gradient-to-r from-emerald-500 to-indigo-600 text-white font-display font-black text-[10px] px-3.5 py-1 rounded-full uppercase tracking-widest shadow-md">
                 Wisdom Scroll 🍃

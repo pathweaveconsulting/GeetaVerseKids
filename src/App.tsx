@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { setActiveCompanionId, stopSpeaking } from './utils/audio';
 import { UserState, GameScreen, AvatarId, CompanionId } from './types';
 import { QUESTS } from './quests';
@@ -192,6 +192,8 @@ export default function App() {
   };
 
   return (
+    // reducedMotion="user" turns off motion/react movement when the device asks for reduced motion
+    <MotionConfig reducedMotion="user">
     <div className="bg-gradient-to-tr from-amber-50 to-orange-100 min-h-screen text-slate-800 antialiased font-sans flex flex-col justify-between selection:bg-amber-200 selection:text-amber-900">
 
       {/* Visual background atmospheric particles */}
@@ -273,5 +275,6 @@ export default function App() {
       </AnimatePresence>
 
     </div>
+    </MotionConfig>
   );
 }

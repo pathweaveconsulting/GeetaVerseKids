@@ -2,6 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { QUESTS } from '../src/quests';
 import { DECORATIONS } from '../src/decorations';
 import { Recorder, DECORATION_GROUP_ID, readState, seedProgress } from './helpers';
+import { checkMapNodes, checkStoryStage, checkWisdomStep } from './layoutChecks';
 
 // Full QC pass. Fails only on hard breakages; everything else is recorded as
 // a finding in qc-report/findings/ for the written report.
@@ -20,7 +21,10 @@ async function playQuest(page: Page, rec: Recorder, questId: number, opts: { scr
   const quest = QUESTS[questId - 1];
   const next = page.getByRole('button', { name: /Next Step/ });
   await page.waitForSelector('#quest-play-wrapper');
-  if (opts.screenshots) await rec.capture(`q${questId}-step1-story`);
+  if (opts.screenshots) {
+    await rec.capture(`q${questId}-step1-story`);
+    await checkStoryStage(page, rec);
+  }
 
   await rec.tap(next, `q${questId} Next (story)`);
   if (opts.screenshots) await rec.capture(`q${questId}-step2-leaf`);
@@ -30,6 +34,7 @@ async function playQuest(page: Page, rec: Recorder, questId: number, opts: { scr
     await rec.tap(page.getByRole('button', { name: /Tap & Chant/ }), 'Tap & Chant');
     await page.waitForTimeout(2800);
     await rec.capture(`q${questId}-step2-wisdom-and-chant`);
+    await checkWisdomStep(page, rec);
   }
 
   await rec.tap(next, `q${questId} Next (wisdom)`);
@@ -193,31 +198,6 @@ test('playthrough', async ({ page }, info) => {
   }
   rec.save();
 });
-
-async function checkMapNodes(page: Page, rec: Recorder, completed: number) {
-  // Quest nodes and their labels shouldn't sit on top of each other
-  const boxes = await page.evaluate(() =>
-    Array.from({ length: 10 }, (_, i) => {
-      const btn = document.querySelector(`#quest-node-${i + 1}`)!;
-      const label = btn.parentElement!.querySelector('div')!;
-      const b = btn.getBoundingClientRect();
-      const l = label.getBoundingClientRect();
-      return { id: i + 1, btn: [b.left, b.top, b.right, b.bottom], label: [l.left, l.top, l.right, l.bottom], text: label.textContent?.trim() };
-    })
-  );
-  const hit = (a: number[], b: number[]) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
-  for (let i = 0; i < boxes.length; i++) {
-    for (let j = i + 1; j < boxes.length; j++) {
-      if (hit(boxes[i].btn, boxes[j].btn)) rec.add('map-overlap', `Quest ${boxes[i].id} and ${boxes[j].id} buttons overlap`, 'map');
-      if (hit(boxes[i].label, boxes[j].label)) rec.add('map-overlap', `Quest ${boxes[i].id} and ${boxes[j].id} labels overlap`, 'map');
-      if (hit(boxes[i].btn, boxes[j].label) || hit(boxes[j].btn, boxes[i].label)) rec.add('map-overlap', `Quest ${boxes[i].id}/${boxes[j].id}: a button overlaps the other's label`, 'map');
-    }
-  }
-  if (completed === 0) {
-    const labels = boxes.map((b) => b.text).join(' | ');
-    rec.add('map-labels', `Node labels read: ${labels}`, 'map');
-  }
-}
 
 // Run quest 1 under a given audio failure and record where (if anywhere) the child gets stuck
 async function playUnderAudioFailure(page: Page, rec: Recorder, label: string) {
