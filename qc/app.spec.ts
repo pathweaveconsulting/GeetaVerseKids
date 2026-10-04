@@ -118,6 +118,7 @@ async function checkSanctuary(page: Page, rec: Recorder, completed: number, name
 }
 
 test('playthrough', async ({ page }, info) => {
+  test.setTimeout(10 * 60 * 1000);
   const rec = new Recorder(page, info, 'playthrough');
   const profile = PROFILE[info.project.name];
 

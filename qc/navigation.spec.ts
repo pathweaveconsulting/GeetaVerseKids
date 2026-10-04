@@ -12,8 +12,11 @@ const stepBadge = (page: Page, text: RegExp) => page.locator('#quest-play-wrappe
 async function toStep(page: Page, questId: number, step: number) {
   const quest = QUESTS[questId - 1];
   for (let current = 1; current < step; current++) {
-    if (current === 2 && (await page.getByRole('button', { name: /Tap to Unveil/ }).count())) {
-      await page.getByRole('button', { name: /Tap to Unveil/ }).click();
+    if (current === 2) {
+      // Wait for the Wisdom step to appear, then open the leaf unless it's already open
+      const unveil = page.getByRole('button', { name: /Tap to Unveil/ });
+      await expect(unveil.or(next(page))).toBeVisible();
+      if (await unveil.isVisible()) await unveil.click();
     }
     if (current === 4) {
       const right = quest.challengeStep.options.find((o) => o.isCorrect)!;

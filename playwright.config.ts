@@ -4,7 +4,8 @@ import { defineConfig } from '@playwright/test';
 // Screenshots and findings are written to qc-report/.
 export default defineConfig({
   testDir: './qc',
-  timeout: 10 * 60 * 1000,
+  // Fail fast if something hangs; the full playthrough sets its own longer limit
+  timeout: 3 * 60 * 1000,
   fullyParallel: false,
   workers: 1,
   reporter: [['list']],
