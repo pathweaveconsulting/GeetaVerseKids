@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, type Variants } from 'motion/react';
 import { COMPANIONS } from '../quests';
 import { CompanionId } from '../types';
 
@@ -28,7 +28,7 @@ export default function CompanionViewer({
   }[size];
 
   // Hover animations
-  const hoverAnimation = animated ? {
+  const hoverAnimation: Variants = animated ? {
     hover: { 
       scale: 1.05, 
       y: -5,

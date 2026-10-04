@@ -23,7 +23,7 @@ export default function AvatarViewer({ id, size = 'md', animated = true }: Avata
     transition: {
       duration: 3,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as const
     }
   } : {};
 

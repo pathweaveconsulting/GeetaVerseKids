@@ -25,7 +25,7 @@ export default function CharacterPortrait({ id, size = 'md', animated = true }: 
     transition: {
       duration: 3 + (id.length % 3), // slight variation so characters don't sync up roboticly
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as const
     }
   } : {};
 
