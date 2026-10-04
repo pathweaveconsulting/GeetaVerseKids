@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { Recorder, readState, seedProgress } from './helpers';
-import { checkMapNodes, checkStoryStage, checkWisdomStep } from './layoutChecks';
+import { checkMapNodes, checkNamesNotSplit, checkStoryStage, checkWisdomStep } from './layoutChecks';
 
 // Strict layout checks at each viewport: any finding fails the test
 
@@ -35,6 +35,7 @@ test('quest 1 story stage and wisdom step fit the screen', async ({ page }, info
   await page.waitForSelector('#story-stage');
   await page.waitForTimeout(700);
   await checkStoryStage(page, rec);
+  await checkNamesNotSplit(page, rec, 'q1-step1');
   // Krishna may be below the fold on a phone; once scrolled to, he must be fully visible (not clipped)
   const krishna = page.locator('#story-stage #portrait-art-krishna');
   await krishna.scrollIntoViewIfNeeded();
@@ -46,9 +47,10 @@ test('quest 1 story stage and wisdom step fit the screen', async ({ page }, info
   await page.getByRole('button', { name: /Tap to Unveil/ }).click();
   await page.waitForTimeout(700);
   await checkWisdomStep(page, rec);
+  await checkNamesNotSplit(page, rec, 'q1-step2');
   await rec.audit();
   rec.save();
-  expectClean(rec, ['story-stage', 'wisdom-step', 'small-tap-target', 'clipped-text', 'horizontal-scroll', 'layout-overflow', 'offscreen-content']);
+  expectClean(rec, ['story-stage', 'wisdom-step', 'split-name', 'small-tap-target', 'clipped-text', 'horizontal-scroll', 'layout-overflow', 'offscreen-content']);
 });
 
 test('every screen: buttons are at least 44px', async ({ page }, info) => {

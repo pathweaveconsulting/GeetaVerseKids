@@ -465,7 +465,7 @@ export default function QuestPage({
                       }}
                       className="flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all"
                     >
-                      <CharacterPortrait id="krishna" size="xs" animated={true} />
+                      <CharacterPortrait id="krishna" size="xs" animated={true} showName={false} />
                       <div className="flex flex-col text-left">
                         <span className="text-[8px] font-black uppercase tracking-widest text-amber-700">Recites Shloka ☸️</span>
                         <span className="font-sans font-black text-[10px] text-indigo-950">Sri Krishna</span>
@@ -485,7 +485,7 @@ export default function QuestPage({
                         <span className="text-[8px] font-black uppercase tracking-widest text-[#0284C7]">Chants Along 🏹</span>
                         <span className="font-sans font-black text-[10px] text-indigo-950">Arjuna</span>
                       </div>
-                      <CharacterPortrait id="arjuna" size="xs" animated={true} />
+                      <CharacterPortrait id="arjuna" size="xs" animated={true} showName={false} />
                     </div>
                   </div>
 

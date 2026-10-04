@@ -7,9 +7,11 @@ interface CharacterPortraitProps {
   id: CharacterId;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   animated?: boolean;
+  // Hide the name label where the name is already shown next to the portrait
+  showName?: boolean;
 }
 
-export default function CharacterPortrait({ id, size = 'md', animated = true }: CharacterPortraitProps) {
+export default function CharacterPortrait({ id, size = 'md', animated = true, showName = true }: CharacterPortraitProps) {
   const sizeClass = {
     xs: 'w-10 h-10',
     sm: 'w-16 h-16',
@@ -376,11 +378,11 @@ export default function CharacterPortrait({ id, size = 'md', animated = true }: 
       </motion.div>
 
       {/* Auxiliary Label */}
-      <div id={`portrait-label-${id}`} className="text-center mt-1 pointer-events-none z-10 max-w-full">
-        <span className="inline-block max-w-full text-[10px] leading-tight bg-indigo-50 text-indigo-950 font-black px-2 py-1 rounded-xl uppercase tracking-wide border border-indigo-100 [overflow-wrap:anywhere]">
+      {showName && <div id={`portrait-label-${id}`} className="text-center mt-1 pointer-events-none z-10 max-w-full">
+        <span className="inline-block max-w-full text-[10px] leading-tight bg-indigo-50 text-indigo-950 font-black px-2 py-1 rounded-xl uppercase tracking-wide border border-indigo-100">
           {nameLabel}
         </span>
-      </div>
+      </div>}
     </div>
   );
 }

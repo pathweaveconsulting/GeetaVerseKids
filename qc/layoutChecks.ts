@@ -93,3 +93,27 @@ export async function checkWisdomStep(page: Page, rec: Recorder) {
   if (info.scrolls) rec.add('wisdom-step', 'The Wisdom card scrolls on its own instead of with the page', 'q1-step2');
   if (info.lessonBottom > info.nextTop) rec.add('wisdom-step', 'The Next button comes before the end of the lesson', 'q1-step2');
 }
+
+// Character names must never be split in the middle of a word
+export async function checkNamesNotSplit(page: Page, rec: Recorder, screen: string) {
+  const split = await page.evaluate(() => {
+    const out: string[] = [];
+    document.querySelectorAll('[id^="portrait-label-"] span').forEach((label) => {
+      const text = label.firstChild;
+      if (!text || text.nodeType !== Node.TEXT_NODE) return;
+      const content = text.textContent || '';
+      const re = /\S+/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(content))) {
+        const range = document.createRange();
+        range.setStart(text, m.index);
+        range.setEnd(text, m.index + m[0].length);
+        const lines = new Set(Array.from(range.getClientRects()).map((r) => Math.round(r.top)));
+        if (lines.size > 1) out.push(`"${m[0]}" in "${content.trim()}" is split across lines`);
+      }
+    });
+    return out;
+  });
+  split.forEach((d) => rec.add('split-name', d, screen));
+}
+
