@@ -5,7 +5,7 @@ import { Recorder, DECORATION_GROUP_ID, readState, seedProgress } from './helper
 import { checkMapNodes, checkStoryStage, checkWisdomStep } from './layoutChecks';
 
 // Full QC pass. Fails only on hard breakages; everything else is recorded as
-// a finding in qc-report/findings/ for the written report.
+// a finding in qc-output/findings/ for the written report.
 
 const PROFILE: Record<string, { companion: string; age: RegExp }> = {
   phone: { companion: 'Veeru', age: /Explorer/ },
