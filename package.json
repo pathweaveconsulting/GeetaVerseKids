@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "qc": "playwright test"
+    "qc": "playwright test",
+    "qc:update-reference": "playwright test qc/app.spec.ts qc/audio.spec.ts --grep \"playthrough|no Web Audio at all\" --project=phone --project=laptop && tsx qc/update-reference.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

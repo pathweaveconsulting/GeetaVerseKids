@@ -2,7 +2,10 @@ import { Page, Locator, TestInfo } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
-export const REPORT_DIR = path.resolve('qc-report');
+// Everything a QC run generates goes here; it is git-ignored. The curated
+// reference screenshots in qc-report/reference/ are only written by
+// `npm run qc:update-reference`.
+export const OUTPUT_DIR = path.resolve('qc-output');
 export const STORAGE_KEY = 'geetaverse_kids_game_state_v1';
 
 // WisdomTree's SVG group id for each decoration art key
@@ -28,7 +31,7 @@ export interface Finding {
 }
 
 // Collects console errors, page errors, failed requests and layout problems
-// for one test, and writes them to qc-report/findings/ when done.
+// for one test, and writes them to qc-output/findings/ when done.
 export class Recorder {
   findings: Finding[] = [];
   private shotIndex = 0;
@@ -62,7 +65,7 @@ export class Recorder {
   async capture(name: string, opts: { audit?: boolean } = {}) {
     this.setScreen(name);
     await this.page.waitForTimeout(700); // let screen transitions settle
-    const dir = path.join(REPORT_DIR, 'screenshots', this.viewport);
+    const dir = path.join(OUTPUT_DIR, 'screenshots', this.viewport);
     fs.mkdirSync(dir, { recursive: true });
     this.shotIndex += 1;
     const prefix = this.testName === 'playthrough' ? '' : `${this.testName}-`;
@@ -178,7 +181,7 @@ export class Recorder {
   }
 
   save() {
-    const dir = path.join(REPORT_DIR, 'findings');
+    const dir = path.join(OUTPUT_DIR, 'findings');
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, `${this.viewport}-${this.testName}.json`), JSON.stringify(this.findings, null, 2));
   }

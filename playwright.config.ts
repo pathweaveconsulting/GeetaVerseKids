@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
 // QC run: plays through the whole app at phone, tablet and laptop widths.
-// Screenshots and findings are written to qc-report/.
+// Screenshots and findings are written to qc-output/ (git-ignored).
 export default defineConfig({
   testDir: './qc',
   // Fail fast if something hangs; the full playthrough sets its own longer limit
