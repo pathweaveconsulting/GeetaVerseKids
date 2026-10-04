@@ -2,8 +2,8 @@
   {
     "viewport": "laptop",
     "test": "playthrough",
-    "screen": "reward-q7",
+    "screen": "reward-q9",
     "kind": "moving-target",
-    "detail": "map node 8 never stops moving (bounce animation)"
+    "detail": "map node 10 never stops moving (bounce animation)"
   }
 ]

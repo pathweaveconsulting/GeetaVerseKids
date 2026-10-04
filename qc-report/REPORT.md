@@ -2,7 +2,7 @@
 
 ## Status update (after the navigation, layout, audio, honesty and privacy fixes)
 
-_Re-run on 2026-10-04 at commit `ec5a564`: all 90 tests passed at phone, tablet and laptop widths (19.8 minutes). The screenshots and findings in this folder are from this run. The original report follows below, unchanged; the table marks what has been fixed since._
+_Re-run on 2026-10-04 at commit `6e06058`: all 108 tests passed at phone, tablet and laptop widths (23.4 minutes). The screenshots and findings in this folder are from this run. The original report follows below, unchanged; the table marks what has been fixed since._
 
 | # | Problem | Status |
 |---|---|---|
@@ -31,11 +31,11 @@ All 14 problems from the original report are now fixed.
 ### Privacy and offline claims
 
 - **No third-party requests:** the fonts are now self-hosted (`src/assets/fonts`, OFL-licensed). `qc/privacy.spec.ts` plays through every screen of the production build and fails on any request that doesn't go to the app's own server. It also scans the build for outside addresses; the only ones are XML namespace names, React's error-docs link and a licence comment, none of which are ever requested.
-- **Speech:** narration only uses voices that run on the device. Some browsers offer cloud voices (such as Chrome's "Google" voices), which send the spoken text, including the child's name, to the voice provider. Those are no longer chosen. If a device has no on-device voice, the browser picks its default voice, which the app can't control.
+- **Speech:** narration only ever uses voices that run on the device (`localService: true`). Cloud voices, and the browser's default voice (which may be a cloud voice), are never used, so the spoken text, including the child's name, never leaves the device. The app waits up to 1.5 seconds for voices to load. If no on-device voice exists, it doesn't speak at all: the text stays on screen, a read-along note appears, and everything remains playable. If an on-device voice turns up later, narration resumes with it. `qc/narration.spec.ts` checks this with a fake speech engine: `speak()` is never called when only cloud voices exist (immediately or loading late) or when there are no voices, and only the on-device voice is used when one exists.
 - **Wording:** the landing page no longer claims "offline-first", because the app needs a connection to load. It now says "Progress is saved only on this device". The profile page's "no tracking" is accurate: there's no analytics, no cookies, no accounts and no third-party requests, and progress is stored only in the browser's local storage on that device.
-- **Still to know:** whoever hosts the app sees normal web-server logs (visitors' IP addresses), as with any website.
+- **Still to know:** whoever hosts the app sees normal web-server logs (visitors' IP addresses), as with any website. Nothing else leaves the device.
 
-The tests now also include `qc/privacy.spec.ts`: third-party requests, the build scan, self-hosted fonts in use, and the privacy wording.
+The tests now also include `qc/privacy.spec.ts` (third-party requests, the build scan, self-hosted fonts in use, and the privacy wording) and `qc/narration.spec.ts` (on-device voices only).
 
 ---
 
